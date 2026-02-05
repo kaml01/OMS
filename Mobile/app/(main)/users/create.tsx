@@ -36,7 +36,11 @@ export default function CreateUserScreen() {
   //   mainGroup: [],    
   //   state: []
   // });
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 3ea987458ba0e0e91d2eb924d913520825684790
   const [formData, setFormData] = useState({
     name: '',
     username: '',

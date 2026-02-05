@@ -18,7 +18,11 @@ import { COLORS, SPACING, RADIUS } from '@/src/constants/theme';
 
 export default function CustomDrawer(props: DrawerContentComponentProps) {
   const { user, logout } = useAuth();
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 3ea987458ba0e0e91d2eb924d913520825684790
   const handleLogout = async () => {
     await logout();
     router.replace('/(auth)/login' as any);
