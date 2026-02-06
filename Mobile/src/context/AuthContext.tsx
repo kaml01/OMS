@@ -42,11 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.success && response.data) {
         const { user, tokens } = response.data;
-<<<<<<< HEAD
 
-=======
-          
->>>>>>> 3ea987458ba0e0e91d2eb924d913520825684790
         await storage.saveTokens(tokens.access, tokens.refresh);
         await storage.saveUser(user);
         setUser(user);

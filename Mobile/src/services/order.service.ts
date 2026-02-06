@@ -1,6 +1,5 @@
 import { api } from "./api";
 
-// Party interfaces
 export interface Party {
   value: string;
   label: string;
@@ -97,6 +96,17 @@ export interface CreateOrderPayload {
   }[];
 }
 
+export interface OrderItemList{
+  id:number;
+  order_number :string;
+  card_code :string;
+  card_name:string;
+  total_amount :string;
+  status:string;
+  items_count :number;
+  created_by :number;
+  created_at:string;
+}
 
 export const productService = {
 
@@ -116,5 +126,16 @@ export const productService = {
     if (type) url += `type=${encodeURIComponent(type)}&`;
     return await api.get(url);
   },
+
+  getOrders:async(userId:number,statusFilter?:string):Promise<OrderItemList[]>=>{
+
+    let url = '/orders/list/?';
+    if (userId)
+      url+=`user_id=${userId}&`;
+    if (statusFilter)
+      url+=`status=${statusFilter}&`;
+    return await api.get(url);
+
+  }
   
 };

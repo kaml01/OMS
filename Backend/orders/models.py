@@ -1,8 +1,5 @@
 from django.db import models
 
-<<<<<<< HEAD
-# Create your models here.
-=======
 class Parties(models.Model):
     card_code = models.CharField(max_length=100,primary_key=True)
     card_name = models.CharField(max_length=100)
@@ -147,5 +144,3 @@ class OrderItem(models.Model):
 
 
 
-
->>>>>>> 3ea987458ba0e0e91d2eb924d913520825684790

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from django.shortcuts import render
-
-# Create your views here.
-=======
 import re
 from django.shortcuts import render
 from .serializers import PartiesSerializer, DispatchLocationSerializer, PartyAddressSerializer,ProductSerializer,CreateOrderSerializer
@@ -66,7 +62,7 @@ class DispatchLocationListView(ListAPIView):
 class PartyAddressesView(APIView):
 
     permission_classes = [AllowAny]
-
+    
     def get(self, request):
         card_code = request.query_params.get('card_code')
 
@@ -380,4 +376,37 @@ class CreateOrderView(APIView):
     'status': order.status,
     'message': 'Order created successfully'
 }, status=status.HTTP_201_CREATED)
->>>>>>> 3ea987458ba0e0e91d2eb924d913520825684790
+
+class OrderListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        status_filter = request.query_params.get('status', None)
+        user_id = request.query_params.get('user_id', None)
+        
+        orders = Order.objects.all().order_by('-created_at')
+        
+        # Filter by user_id
+        if user_id:
+            orders = orders.filter(created_by=user_id)
+        
+        # Filter by status
+        if status_filter:
+            orders = orders.filter(status=status_filter)
+        
+        data = []
+        for order in orders:
+            items_count = OrderItem.objects.filter(order=order).count()
+            data.append({
+                'id': order.id,
+                'order_number': order.order_number,
+                'card_code': order.card_code,
+                'card_name': order.card_name,
+                'total_amount': str(order.total_amount),
+                'status': order.status,
+                'items_count': items_count,
+                'created_by': order.created_by,
+                'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+            })
+        
+        return Response(data)   

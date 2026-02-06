@@ -1,13 +1,11 @@
-<<<<<<< HEAD
-const BASE_URL = 'http://10.0.2.2:8000/api';
-=======
+
 import { Platform } from 'react-native';
 
 const BASE_URL =
   Platform.OS === 'android'
     ? 'http://10.0.2.2:8000/api'
     : 'http://127.0.0.1:8000/api';
->>>>>>> 3ea987458ba0e0e91d2eb924d913520825684790
+
 
 export const api = {
 

@@ -40,49 +40,16 @@ class State(models.Model):
 class User(AbstractUser):
     first_name = None
     last_name = None
-
+    
     name = models.CharField(max_length = 150)
-<<<<<<< HEAD
     email = models.EmailField(max_length=15, blank=True, null=True)
     phone = models.CharField(max_length = 15, blank = True, null= True)
     role = models.CharField(max_length = 15, blank = True,null = True)
   
-=======
     email = models.EmailField(max_length = 15,blank = True,null = True)
     phone = models.CharField(max_length = 15, blank = True, null= True)
     role = models.CharField(max_length = 15, blank = True,null = True)
     
-    # company = models.ForeignKey(
-    #     Company, 
-    #     on_delete = models.SET_NULL,
-    #     null = True,
-    #     blank = True,
-    #     related_name = 'users'
-    # )
-
-    # main_group = models.ForeignKey(
-    #     MainGroup,
-    #     on_delete= models.SET_NULL,
-    #     null = True,
-    #     blank = True,
-    #     related_name = 'users'
-    # )
-
-    # state = models.ForeignKey(
-    #     State,
-    #     on_delete = models.SET_NULL,
-    #     null = True,
-    #     blank = True,
-    #     related_name = 'users'
-    # )
-
-    # created_at = models.DateTimeField(auto_now_add=True)
-    # updated_at = models.DateTimeField(auto_now=True)
-
-    # def __str__(self):
-    #     return f"{self.name} ({self.username})"
-
->>>>>>> 3ea987458ba0e0e91d2eb924d913520825684790
     company = models.ManyToManyField(Company, blank=True, related_name='users')
     main_group = models.ManyToManyField(MainGroup, blank=True, related_name='users')
     state = models.ManyToManyField(State, blank=True, related_name='users')
@@ -90,17 +57,11 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-<<<<<<< HEAD
     
     def __str__(self):
         return self.username
 
-
-=======
-
     def __str__(self):
         return self.username
 
-    
->>>>>>> 3ea987458ba0e0e91d2eb924d913520825684790
     
