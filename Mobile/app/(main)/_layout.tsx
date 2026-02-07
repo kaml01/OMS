@@ -12,22 +12,23 @@ export default function MainLayout() {
   const role = user?.role || "";
 
   const canSee = {
-    dashboard: ["admin", "manager", "operator"],
-    orders: ["manager", "operator"],
-    "orders/create": ["manager"],
-    "orders/orderslist": ["manager"],
-    "users/create": ["admin"],
-    approver: ["approver"],
-    reports: ["admin", "manager"],
-    settings: ["admin"],
+    dashboard: ["Admin", "Manager"],
+    orders: ["Manager"],
+    "orders/create": ["Manager"],
+    "orders/orderslist": ["Manager"],
+    "users/create": ["Admin"],
+    approval: ["Approver"],
+    reports: ["Manager"],
+    settings: ["Admin"],
   };
 
   useEffect(() => {
-    console.log("useridd " + canSee["approver"].includes(role));
+    console.log("useridd " + canSee["approval"].includes(role));
   });
 
   const isVisible = (screen: keyof typeof canSee) => {
-    return canSee[screen].includes(role);
+    const roles = canSee[screen as keyof typeof canSee];
+    return roles?.includes(role?.toLowerCase()); 
   };
 
   const hiddenStyle = { display: "none" as const };
@@ -38,7 +39,7 @@ export default function MainLayout() {
     marginVertical: 2,
     paddingLeft: 8,
   };
-
+  
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Drawer
@@ -61,6 +62,7 @@ export default function MainLayout() {
             marginLeft: -8,
           },
         }}>
+
         {/* Dashboard */}
         <Drawer.Screen
           name="dashboard"
@@ -160,11 +162,11 @@ export default function MainLayout() {
           options={{
             drawerLabel: "Pending Approvals",
             title: "Pending Approvals",
-            headerShown: true,  // ADD THIS
+            headerShown: true,  
             drawerIcon: ({ color }) => (
               <Ionicons name="checkmark-done-outline" size={22} color={color} />
             ),
-            drawerItemStyle: isVisible("approver") ? visibleStyle : hiddenStyle,
+            drawerItemStyle: isVisible("approval") ? visibleStyle : hiddenStyle,
           }}
         />
 
@@ -173,3 +175,4 @@ export default function MainLayout() {
   );
 
 }
+ 

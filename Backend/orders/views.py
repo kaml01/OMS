@@ -275,7 +275,7 @@ class ProductFiltersView(APIView):
             'types': [{'label': t, 'value': t} for t in types]
         })
 
-class ProductListView(APIView):
+class ProductListView(APIView): 
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -377,12 +377,74 @@ class CreateOrderView(APIView):
     'message': 'Order created successfully'
 }, status=status.HTTP_201_CREATED)
 
+class ApproveOrderView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        if order.status != 'submitted':
+            return Response(
+                {'error': f'Cannot approve. Current status: {order.status}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        order.status = 'approved'
+        order.approved_by = request.user.id if request.user.is_authenticated else 2
+        order.approved_at = datetime.now()
+        order.save()
+        
+        return Response({
+            'message': f'Order {order.order_number} approved successfully',
+            'order_number': order.order_number,
+            'status': order.status,
+        })
+
+class RejectOrderView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        if order.status != 'submitted':
+            return Response(
+                {'error': f'Cannot reject. Current status: {order.status}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        reason = request.data.get('reason', '')
+        
+        if not reason:
+            return Response(
+                {'error': 'Rejection reason is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        order.status = 'rejected'
+        order.rejected_by = request.user.id if request.user.is_authenticated else 2
+        order.rejected_at = datetime.now()
+        order.rejection_reason = reason
+        order.save()
+        
+        return Response({
+            'message': f'Order {order.order_number} rejected',
+            'order_number': order.order_number,
+            'status': order.status,
+        })
+
 class OrderListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        status_filter = request.query_params.get('status', None)
-        user_id = request.query_params.get('user_id', None)
+        
+        status_filter = request.query_params.get('status', None) #optional 
+        user_id = request.query_params.get('user_id', None) #optional parameter
         
         orders = Order.objects.all().order_by('-created_at')
         

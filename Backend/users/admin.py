@@ -26,15 +26,15 @@ class StateAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ['id', 'username', 'name', 'email', 'role', 'is_active']
-    list_filter = ['is_active', 'role']
+    list_display = ['id', 'username', 'name', 'email', 'role_id', 'is_active']
+    list_filter = ['is_active', 'role_id']
     search_fields = ['username', 'name', 'email', 'phone']
     ordering = ['-id']
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal Info', {'fields': ('name', 'email', 'phone')}),
-        ('Organization', {'fields': ('role', 'company', 'main_group', 'state')}),
+        ('Organization', {'fields': ('role_id', 'company', 'main_group', 'state')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
     )
 

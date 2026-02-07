@@ -95,7 +95,7 @@ export interface CreateOrderPayload {
     tax_rate: number;
   }[];
 }
-
+  
 export interface OrderItemList{
   id:number;
   order_number :string;
@@ -107,7 +107,7 @@ export interface OrderItemList{
   created_by :number;
   created_at:string;
 }
-
+  
 export const productService = {
 
   getFilters: async (category?: string, brand?: string, variety?: string): Promise<ProductFilters> => {
@@ -136,6 +136,14 @@ export const productService = {
       url+=`status=${statusFilter}&`;
     return await api.get(url);
 
+  },
+
+  approveOrder:async(orderId:number):Promise<OrderItemList[]>=>{
+    return await api.post(`/orders/${orderId}/approve/`,{});
+  },
+  
+  rejectOrder:async(orderId:number,reason:string):Promise<OrderItemList[]>=>{
+    return await api.post(`/orders/${orderId}/reject/`,{reason});
   }
   
 };

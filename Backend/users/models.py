@@ -44,11 +44,7 @@ class User(AbstractUser):
     name = models.CharField(max_length = 150)
     email = models.EmailField(max_length=15, blank=True, null=True)
     phone = models.CharField(max_length = 15, blank = True, null= True)
-    role = models.CharField(max_length = 15, blank = True,null = True)
-  
-    email = models.EmailField(max_length = 15,blank = True,null = True)
-    phone = models.CharField(max_length = 15, blank = True, null= True)
-    role = models.CharField(max_length = 15, blank = True,null = True)
+    role_id = models.IntegerField(blank = True,null = True)
     
     company = models.ManyToManyField(Company, blank=True, related_name='users')
     main_group = models.ManyToManyField(MainGroup, blank=True, related_name='users')

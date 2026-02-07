@@ -138,7 +138,7 @@ class OrderItem(models.Model):
     
     class Meta:
         db_table = 'order_items'
-
+    
     def __str__(self):
         return f"{self.item_name} x {self.qty}"
 
