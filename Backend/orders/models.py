@@ -143,4 +143,3 @@ class OrderItem(models.Model):
         return f"{self.item_name} x {self.qty}"
 
 
-

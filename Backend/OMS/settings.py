@@ -48,9 +48,12 @@ INSTALLED_APPS = [
     # Local apps
     'users',
     'orders',
+
 ]
 
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -58,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'sap_sync',
 ]
 
 ROOT_URLCONF = 'OMS.urls'
@@ -95,6 +99,12 @@ DATABASES = {
 }
 
 
+SAP_DB_HOST = '103.89.45.75'
+SAP_DB_NAME = 'Jivo_All_Branches_Live'
+SAP_DB_USER = 'ab'
+SAP_DB_PASSWORD = 'Jivo@!@#$'
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -113,6 +123,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8081",  # Expo web default port
+    "http://localhost:19006", # Expo web alternate port
+    "http://localhost:3000",
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
