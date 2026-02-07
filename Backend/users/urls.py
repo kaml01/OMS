@@ -1,4 +1,5 @@
 from django.urls import path
+from .views import LoginView, ProfileView,StateListView,CompanyListView,MainGroupListView,CreateUserView
 from .views import (
     LoginView,
     ProfileView,
@@ -20,9 +21,16 @@ from .views import (
     RemoveProductFromPartyView,
 )
 
+
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('profile/', ProfileView.as_view(), name='profile'),
+
+    # Master data APIS
+    path('states/',StateListView.as_view(),name='states'),
+    path('companies/',CompanyListView.as_view(),name='companies'),
+    path('mainGroup/', MainGroupListView.as_view(), name='mainGroup'),
+    path('users/create/', CreateUserView.as_view(), name='create-user'),
 
     # Master data APIs
     path('states/', StateListView.as_view(), name='states'),
@@ -43,4 +51,5 @@ urlpatterns = [
     path('party-product/bulk-add/', BulkAssignProductsToPartyView.as_view(), name='bulk-add-products-to-party'),
     path('party-product/update-rate/', UpdateProductRateView.as_view(), name='update-product-rate'),
     path('party-product/remove/', RemoveProductFromPartyView.as_view(), name='remove-product-from-party'),
+
 ]
