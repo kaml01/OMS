@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Company, MainGroup, State
+from .models import User, Company, MainGroup, State, UserRole
 
 
 @admin.register(Company)
@@ -34,7 +34,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal Info', {'fields': ('name', 'email', 'phone')}),
-        ('Organization', {'fields': ('role', 'company', 'main_group', 'state')}),
+        ('Organization', {'fields': ('role',)}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
     )
 
@@ -44,3 +44,8 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('username', 'password1', 'password2', 'name', 'email', 'role'),
         }),
     )
+
+@admin.register(UserRole)
+class RoleAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'display_name', 'is_active']
+    search_fields = ['display_name']

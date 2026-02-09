@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import User, Company, MainGroup, State
+from .models import User, Company, MainGroup, State,UserRole
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -183,3 +183,8 @@ class CreateUserSerializer(serializers.Serializer):
             user.states.set(states)
 
         return user
+    
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserRole
+        fields = ['id', 'name', 'display_name', 'is_active']

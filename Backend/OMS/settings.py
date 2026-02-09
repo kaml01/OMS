@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'django_apscheduler',
     'sap_sync',
     'login',
-    'user_role',
+    
 ]
 
 MIDDLEWARE = [

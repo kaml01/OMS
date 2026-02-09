@@ -41,6 +41,19 @@ class State(models.Model):
 
     def __str__(self):
         return self.name
+    
+class UserRole(models.Model):
+    name=models.CharField(max_length=50, unique=True)
+    display_name=models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table="users_role"
+        # verbose_name_plural = "Roles"
+        ordering=['name']
+
+    def __str__(self):
+        return self.display_name
 
 
 class User(AbstractUser):
@@ -50,7 +63,30 @@ class User(AbstractUser):
     name = models.CharField(max_length=150)
     email = models.EmailField(max_length=50, blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
-    role = models.CharField(max_length=15, blank=True, null=True)
+    role = models.ForeignKey(
+        "UserRole",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True)
+    company = models.ForeignKey(
+        "Company",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True)
+    state = models.ForeignKey(
+        "State",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    main_group = models.ForeignKey(
+        "MainGroup",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+          db_column='maingroup_id' 
+    )
 
     # Removed ManyToMany - tables don't exist in DB
     # If you need company/state/main_group, add them as ForeignKey or create the tables
@@ -129,3 +165,4 @@ class PartyProductAssignment(models.Model):
 
     def __str__(self):
         return f"{self.card_code} - {self.item_code} ({self.category}) - ₹{self.basic_rate}"
+    

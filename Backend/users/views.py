@@ -5,9 +5,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from decimal import Decimal
-
-from .models import User, UserPartyAssignment, PartyProductAssignment, State, Company, MainGroup
+from .serializers import RoleSerializer
+from .models import User, UserPartyAssignment, PartyProductAssignment, State, Company, MainGroup,UserRole
 from sap_sync.models import Party, Product
+from django.db import models
+from django.db.models import Q
 
 
 class LoginView(APIView):
@@ -49,7 +51,7 @@ class LoginView(APIView):
                     'username': user.username,
                     'email': user.email,
                     'phone': user.phone,
-                    'role': user.role,
+                    'role': user.role.display_name,
                     'is_active': user.is_active,
                 },
                 'tokens': {
@@ -73,14 +75,14 @@ class ProfileView(APIView):
                 'username': user.username,
                 'email': user.email,
                 'phone': user.phone,
-                'role': user.role,
+                'role': user.role.display_name,
                 'is_active': user.is_active,
             }
         })
 
 
 class StateListView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         states = State.objects.filter(is_active=True).values('id', 'name', 'code')
@@ -88,7 +90,7 @@ class StateListView(APIView):
 
 
 class CompanyListView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         companies = Company.objects.filter(is_active=True).values('id', 'name')
@@ -96,7 +98,7 @@ class CompanyListView(APIView):
 
 
 class MainGroupListView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         groups = MainGroup.objects.filter(is_active=True).values('id', 'name')
@@ -104,7 +106,7 @@ class MainGroupListView(APIView):
 
 
 class CreateUserView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def post(self, request):
         data = request.data
@@ -113,17 +115,23 @@ class CreateUserView(APIView):
         name = data.get('name')
         email = data.get('email')
         phone = data.get('phone')
-        role = data.get('role')
+        role_id = data.get('role')
+        company_id=data.get('company')
+        main_group_id=data.get('mainGroup')
+        state_id=data.get('state')
 
         if not username or not password:
             return Response({'success': False, 'message': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if User.objects.filter(username=username).exists():
-            return Response({'success': False, 'message': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(Q(email=email) | Q(phone=phone)).exists():
+            return Response({'success': False, 'message': 'Email or phone no already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(
             username=username, password=password, name=name or '',
-            email=email, phone=phone, role=role,
+            email=email, phone=phone, role_id=role_id,
+            company_id=company_id,
+main_group_id=main_group_id,            state_id=state_id,
+
         )
 
         return Response({
@@ -134,10 +142,10 @@ class CreateUserView(APIView):
 
 
 class UserListForAssignmentView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        users = User.objects.filter(is_active=True).values('id', 'username', 'name', 'email', 'role')
+        users = User.objects.filter(is_active=True).values('id', 'name', 'email',  'company', 'is_active',role_name=models.F('role__name')).order_by('id')
         return Response({'success': True, 'data': list(users)})
 
 
@@ -467,3 +475,12 @@ class RemoveProductFromPartyView(APIView):
             return Response({'success': True, 'message': 'Product removed from party'})
         except PartyProductAssignment.DoesNotExist:
             return Response({'success': False, 'message': 'Assignment not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class RoleListView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        roles = UserRole.objects.all().values('id','name', 'display_name', 'is_active')
+        # serializer = RoleSerializer(roles, many=True)
+        return Response({'success': True, 'data':list(roles)})

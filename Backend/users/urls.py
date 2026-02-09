@@ -7,6 +7,7 @@ from .views import (
     MainGroupListView,
     CreateUserView,
     UserListForAssignmentView,
+    RoleListView,
     # Party assignment
     UserPartiesView,
     AssignPartiesView,
@@ -30,6 +31,7 @@ urlpatterns = [
     path('mainGroup/', MainGroupListView.as_view(), name='mainGroup'),
     path('users/create/', CreateUserView.as_view(), name='create-user'),
     path('users/list/', UserListForAssignmentView.as_view(), name='users-list'),
+    path('roles/', RoleListView.as_view(), name="role"),
 
     # Party assignment APIs (using card_code)
     path('users/<int:user_id>/parties/', UserPartiesView.as_view(), name='user-parties'),
