@@ -5,11 +5,13 @@ from django.shortcuts import render
 from .serializers import PartiesSerializer, DispatchLocationSerializer, PartyAddressSerializer,ProductSerializer,CreateOrderSerializer
 from .models import Parties, DispatchLocation, UserPartyAssignment, PartyAddress,ProductDetails,Order,OrderItem
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime
+from django.db.models import Sum, Count
+from django.utils import timezone
 
 def extract_type_from_name(item_name):
     """Extract size/type like '1 LTR', '500 ML', '5 KG' from item name"""
@@ -459,5 +461,30 @@ class OrderFilterView(APIView):
             'approved_at': order.approved_at.strftime('%Y-%m-%d %H:%M') if order.approved_at else None,
             'items': items_data,
         })
-    
-    
+
+
+class AdminDashboardView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        today = timezone.now().date()
+        current_month_start = today.replace(day=1)
+
+        all_orders = Order.objects.all()
+
+        total_orders = all_orders.count()
+        total_revenue = all_orders.aggregate(total=Sum('total_amount'))['total'] or 0
+        today_orders = all_orders.filter(created_at__date=today).count()
+        this_month_orders = all_orders.filter(created_at__date__gte=current_month_start).count()
+
+        status_counts = {}
+        for choice_value, choice_label in Order.STATUS_CHOICE:
+            status_counts[choice_value] = all_orders.filter(status=choice_value).count()
+
+        return Response({
+            'total_orders': total_orders,
+            'total_revenue': str(total_revenue),
+            'today_orders': today_orders,
+            'this_month_orders': this_month_orders,
+            'status_counts': status_counts,
+        })
