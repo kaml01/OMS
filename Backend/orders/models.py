@@ -80,7 +80,7 @@ class ProductDetails(models.Model):
 
     def __str__(self):
         return self.item_name
-    
+
 class Order(models.Model):
     STATUS_CHOICE=[
         ('submitted','Submitted'),
@@ -135,12 +135,37 @@ class OrderItem(models.Model):
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+    basic_price = models.DecimalField(max_digits=10,decimal_places=2,default=0)
+
     class Meta:
         db_table = 'order_items'
-    
+
     def __str__(self):
         return f"{self.item_name} x {self.qty}"
 
+class OrdersLog(models.Model):
+    order = models.ForeignKey('Order',on_delete=models.CASCADE,related_name='order_logs')
+    action = models.CharField(max_length=30) 
+    #action = models.ForeignKey('OrderStatus',on_delete=models.CASCADE,related_name='status_logs')
+    performed_by = models.ForeignKey('users.user',on_delete=models.CASCADE,related_name='+')
+    remarks = models.TextField(blank=True,default='')
+    created_at = models.DateTimeField(auto_now_add=True,db_index=True)
 
+    class Meta:
+        db_table = 'order_logs'
+        ordering = ['-created_at'] #for sorting according to date
 
+    def __str__(self):
+        return f"[{self.order.order_number}] {self.action.name}"    
+
+#  class OrderStatus(models.Model):
+#     name = models.CharField(max_length=30, unique=True)
+#     display_name = models.CharField(max_length=100)
+#     is_active = models.BooleanField(default=True)
+
+#     class Meta:
+#         managed = False  # Django won't touch the table
+#         db_table = 'order_statuses'
+
+#     def __str__(self):
+#         return self.display_name       

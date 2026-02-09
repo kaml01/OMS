@@ -13,4 +13,5 @@ urlpatterns=[
     path('list/', OrderListView.as_view(), name='order_list'),
     path('<int:order_id>/approve/', ApproveOrderView.as_view(), name='approve_list'),
     path('<int:order_id>/reject/', RejectOrderView.as_view(), name='reject_list'),
+    # path('auth/roles/', RoleListView.as_view(), name='roles-list'),
 ]

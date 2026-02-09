@@ -2,6 +2,11 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import User, Company, MainGroup, State
 
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ['id', 'name']
+
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
@@ -21,12 +26,14 @@ class UserSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
     main_groups = MainGroupSerializer(many=True, read_only=True)
     states = StateSerializer(many=True, read_only=True)
-    
+    role = serializers.CharField(source='role.name', read_only=True)
+    role_display = serializers.CharField(source='role.display_name', default=None, read_only=True)
+
     class Meta:
         model = User
         fields = [
             'id', 'name', 'username', 'email', 'phone',
-            'role_id', 'company', 'main_groups', 'states', 'is_active'
+            'role','role_display', 'company', 'main_groups', 'states', 'is_active'
         ]
 
 class LoginSerializer(serializers.Serializer):
@@ -51,7 +58,7 @@ class CreateUserSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, min_length=6)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     phone = serializers.CharField(max_length=15, required=False, allow_blank=True, allow_null=True)
-    role = serializers.CharField(max_length=15, required=False, allow_blank=True, allow_null=True)
+    role = serializers.IntegerField(required=False, allow_null=True)
     company = serializers.IntegerField(required=False, allow_null=True)
     main_group = serializers.CharField(required=False, allow_blank=True)
     state = serializers.CharField(required=False, allow_blank=True)
@@ -97,9 +104,12 @@ class CreateUserSerializer(serializers.Serializer):
         main_group_ids = validated_data.pop('main_group', [])
         state_ids = validated_data.pop('state', [])
         password = validated_data.pop('password')
-
+        role_id = validated_data.pop('role', None)
+        
         user = User(**validated_data)
         user.set_password(password)
+        if role_id:
+            user.role_id = role_id 
         user.save()
 
         # Set ManyToMany fields after save
