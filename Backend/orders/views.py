@@ -412,3 +412,52 @@ class OrderListView(APIView):
         
         return Response(data)   
 
+
+class OrderFilterView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        order_id = request.query_params.get('order_id')
+
+        if not order_id:
+            return Response({'error': 'order_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        items = OrderItem.objects.filter(order=order)
+
+        items_data = [
+            {
+                'item_code': item.item_code,
+                'item_name': item.item_name,
+                'category': item.category,
+                'variety': item.variety,
+                'item_type': item.item_type,
+                'qty': str(item.qty),
+                'pcs': str(item.pcs),
+                'boxes': str(item.boxes),
+                'ltrs': str(item.ltrs),
+                'market_price': str(item.market_price),
+                'total': str(item.total),
+                'tax_rate': str(item.tax_rate),
+                'basic_price': str(item.basic_price),
+            }
+            for item in items
+        ]
+
+        return Response({
+            'id': order.id,
+            'card_code': order.card_code,
+            'card_name': order.card_name,
+            'bill_to_address': order.bill_to_address,
+            'ship_to_address': order.ship_to_address,
+            'dispatch_from_name': order.dispatch_from_name,
+            'status': order.status,
+            'approved_at': order.approved_at.strftime('%Y-%m-%d %H:%M') if order.approved_at else None,
+            'items': items_data,
+        })
+    
+    

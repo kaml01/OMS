@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # Local apps
     'users',
     'orders',
+    'sap_sync',
 
 ]
 
@@ -61,7 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'sap_sync',
+    
 ]
 
 ROOT_URLCONF = 'OMS.urls'

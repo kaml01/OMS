@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path,include
-from .views import PartyView,DispatchLocationListView,PartyAddressesView,ProductFiltersView,ProductListView,CreateOrderView,OrderListView
+from .views import PartyView,DispatchLocationListView,PartyAddressesView,ProductFiltersView,ProductListView,CreateOrderView,OrderListView,OrderFilterView
 
 urlpatterns=[
 
@@ -11,4 +11,5 @@ urlpatterns=[
     path('products/', ProductListView.as_view(), name='products'),
     path('create/', CreateOrderView.as_view(), name='create-order'),
     path('list/', OrderListView.as_view(), name='order_list'),
+    path('detail/', OrderFilterView.as_view(), name='order_detail'),
 ]
