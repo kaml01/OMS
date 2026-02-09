@@ -48,50 +48,50 @@ class LoginView(APIView):
             'errors': serializer.errors
         }, status=status.HTTP_401_UNAUTHORIZED)
     
-        username = request.data.get('username')
-        password = request.data.get('password')
+        # username = request.data.get('username')
+        # password = request.data.get('password')
 
-        if not username or not password:
-            return Response({
-                'success': False,
-                'message': 'Username and password are required'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # if not username or not password:
+        #     return Response({
+        #         'success': False,
+        #         'message': 'Username and password are required'
+        #     }, status=status.HTTP_400_BAD_REQUEST)
 
-        user = authenticate(username=username, password=password)
+        # user = authenticate(username=username, password=password)
 
-        if user is None:
-            return Response({
-                'success': False,
-                'message': 'Invalid credentials'
-            }, status=status.HTTP_401_UNAUTHORIZED)
+        # if user is None:
+        #     return Response({
+        #         'success': False,
+        #         'message': 'Invalid credentials'
+        #     }, status=status.HTTP_401_UNAUTHORIZED)
 
-        if not user.is_active:
-            return Response({
-                'success': False,
-                'message': 'Account is disabled'
-            }, status=status.HTTP_401_UNAUTHORIZED)
+        # if not user.is_active:
+        #     return Response({
+        #         'success': False,
+        #         'message': 'Account is disabled'
+        #     }, status=status.HTTP_401_UNAUTHORIZED)
 
-        refresh = RefreshToken.for_user(user)
+        # refresh = RefreshToken.for_user(user)
 
-        return Response({
-            'success': True,
-            'message': 'Login successful',
-            'data': {
-                'user': {
-                    'id': user.id,
-                    'name': user.name,
-                    'username': user.username,
-                    'email': user.email,
-                    'phone': user.phone,
-                    'role': user.role,
-                    'is_active': user.is_active,
-                },
-                'tokens': {
-                    'access': str(refresh.access_token),
-                    'refresh': str(refresh),
-                }
-            }
-        })
+        # return Response({
+        #     'success': True,
+        #     'message': 'Login successful',
+        #     'data': {
+        #         'user': {
+        #             'id': user.id,
+        #             'name': user.name,
+        #             'username': user.username,
+        #             'email': user.email,
+        #             'phone': user.phone,
+        #             'role': user.role,
+        #             'is_active': user.is_active,
+        #         },
+        #         'tokens': {
+        #             'access': str(refresh.access_token),
+        #             'refresh': str(refresh),
+        #         }
+        #     }
+        # })
 
 
 class ProfileView(APIView):
@@ -143,21 +143,21 @@ class CreateUserView(APIView):
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
 
-        user = request.user
-        return Response({
-            'success': True,
-            'data': {
-                'id': user.id,
-                'name': user.name,
-                'username': user.username,
-                'email': user.email,
-                'phone': user.phone,
-                'role': user.role,
-                'is_active': user.is_active,
-            }
-        })
+    #     user = request.user
+    #     return Response({
+    #         'success': True,
+    #         'data': {
+    #             'id': user.id,
+    #             'name': user.name,
+    #             'username': user.username,
+    #             'email': user.email,
+    #             'phone': user.phone,
+    #             'role': user.role,
+    #             'is_active': user.is_active,
+    #         }
+    #     })
 
 
 class StateListView(APIView):

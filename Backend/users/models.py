@@ -12,12 +12,7 @@ class Company(models.Model):
     def __str__(self):
         return self.name
 
-class MainGroup(models.Model):
-    name = models.CharField(max_length= 35 ,unique = True)
-    is_active = models.BooleanField(default = True)
-    created_at = models.DateTimeField(auto_now_add = True)
-    
-    class Meta:
+
 
 class Company(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -47,12 +42,7 @@ class MainGroup(models.Model):
         return self.name
 
 
-class State(models.Model):
-    name = models.CharField(max_length= 20,unique = True)
-    code = models.CharField(max_length = 10,unique = True)
-    is_active = models.BooleanField(default=True) 
 
-    class Meta:
 
 class State(models.Model):
     name = models.CharField(max_length=20, unique=True)
