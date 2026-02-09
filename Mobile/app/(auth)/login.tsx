@@ -50,6 +50,11 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
+
+
+    if (!validate()) 
+      return;
+
     if (!validate()) return;
 
     setLoading(true);
