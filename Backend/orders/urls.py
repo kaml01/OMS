@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path,include
-from .views import PartyView,DispatchLocationListView,PartyAddressesView,ProductFiltersView,ProductListView,CreateOrderView,OrderListView,OrderFilterView,AdminDashboardView
+from .views import PartyView,DispatchLocationListView,PartyAddressesView,ProductFiltersView,ProductListView,CreateOrderView,OrderListView,OrderFilterView,AdminDashboardKPIView,AdminDashboardChartsView
 
 urlpatterns=[
 
@@ -12,5 +12,6 @@ urlpatterns=[
     path('create/', CreateOrderView.as_view(), name='create-order'),
     path('list/', OrderListView.as_view(), name='order_list'),
     path('detail/', OrderFilterView.as_view(), name='order_detail'),
-    path('dashboard/admin/', AdminDashboardView.as_view(), name='dashboard'),
+    path('dashboard/admin/', AdminDashboardKPIView.as_view(), name='dashboard'),
+    path('dashboard/admin/charts/', AdminDashboardChartsView.as_view(), name='dashboard-charts'),
 ]
