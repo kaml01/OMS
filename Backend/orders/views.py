@@ -2,13 +2,14 @@ from django.shortcuts import render
 import re
 from django.shortcuts import render
 from .serializers import PartiesSerializer, DispatchLocationSerializer, PartyAddressSerializer,ProductSerializer,CreateOrderSerializer
-from .models import Parties, DispatchLocation, UserPartyAssignment, PartyAddress,ProductDetails,Order,OrderItem
+from .models import Parties, DispatchLocation, UserPartyAssignment, PartyAddress,ProductDetails,Order,OrderItem,OrderStatus,log_order_action
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime
+from functools import lru_cache
 
 def extract_type_from_name(item_name):
     """Extract size/type like '1 LTR', '500 ML', '5 KG' from item name"""
@@ -29,12 +30,33 @@ def extract_type_from_name(item_name):
         return result
     return None
 
+class PartyProductsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, card_code):
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT ppa.item_code, ppa.category, ppa.basic_rate,
+                   p.item_name, p.sal_factor2, p.tax_rate, p.sal_pack_unit,
+                   p.brand, p.variety
+            FROM party_product_assignments ppa
+            LEFT JOIN sap_products p ON ppa.item_code = p.item_code
+            WHERE ppa.card_code = %s AND ppa.is_active = true
+            ORDER BY ppa.category, p.item_name
+        """, [card_code])
+
+        columns = [col[0] for col in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        return Response(rows)
+        
 class PartyView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
         user_id = request.user.id if request.user.is_authenticated else 2
-
+        
         assigned_card_codes = UserPartyAssignment.objects.filter(
             user_id=user_id,
             is_active=True
@@ -330,6 +352,8 @@ class CreateOrderView(APIView):
         # Calculate total
         total_amount = sum(float(item.get('total', 0)) for item in items)
 
+        user = request.user if request.user.is_authenticated else None
+
         # Create order
         order = Order.objects.create(
             order_number=order_number,
@@ -344,11 +368,14 @@ class CreateOrderView(APIView):
             company=data.get('company', ''),
             po_number=data.get('po_number', ''),
             total_amount=total_amount,
-            status='submitted',
-            created_by=request.user.id if request.user.is_authenticated else 2,
+            status=get_status('CREATED'),
+            created_by=user.id if user else 2,
         )
         
-        # Create order items
+        # Create order items + price check
+        needs_approval = False
+        flagged_items = []
+
         for item in items:
             OrderItem.objects.create(
                 order=order,
@@ -362,20 +389,130 @@ class CreateOrderView(APIView):
                 pcs=item.get('pcs', 0),
                 boxes=item.get('boxes', 0),
                 ltrs=item.get('ltrs', 0),
+                basic_price=item.get('basic_price', 0),
                 market_price=item.get('market_price', 0),
                 total=item.get('total', 0),
                 tax_rate=item.get('tax_rate', 0),
             )
+
+            bp = float(item.get('basic_price', 0))
+            mp = float(item.get('market_price', 0))
+            if bp > mp:
+                needs_approval = True
+                flagged_items.append(f"{item.get('item_name')}: Basic ₹{bp} > Market ₹{mp}")
         
-        # Return created order
-        # result = CreateOrderSerializer(order).data
+        # Log: Order created
+        log_order_action(order, 'CREATED', user=user)
+        
+        # Route based on price check
+        if needs_approval:
+            order.status = get_status('PENDING_APPROVAL')
+            order.save()
+            log_order_action(order, 'PENDING_APPROVAL', user=user, remarks='; '.join(flagged_items))
+        else:
+            order.status = get_status('BILLING')
+            order.save()
+            log_order_action(order, 'BILLING', user=user)
+
         return Response({
-    'id': order.id,
-    'order_number': order.order_number,
-    'total_amount': str(order.total_amount),
-    'status': order.status,
-    'message': 'Order created successfully'
-}, status=status.HTTP_201_CREATED)
+            'id': order.id,
+            'order_number': order.order_number,
+            'total_amount': str(order.total_amount),
+            'status': order.status.name,
+            'needs_approval': needs_approval,
+            'flagged_items': flagged_items if needs_approval else [],
+            'message': 'Order sent for approval' if needs_approval else 'Order sent to billing',
+        }, status=status.HTTP_201_CREATED)
+
+# class CreateOrderView(APIView):
+#     permission_classes = [AllowAny]
+    
+#     def post(self, request):
+#         serializer = CreateOrderSerializer(data=request.data)
+        
+#         if not serializer.is_valid():
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+#         data = serializer.validated_data
+#         items = data.pop('items', [])
+        
+#         if not items:
+#             return Response({'error': 'At least one item is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+#         # Generate order number: ORD-YYYYMMDD-XXXX
+#         today = datetime.now().strftime('%Y%m%d')
+#         last_order = Order.objects.filter(
+#             order_number__startswith=f'ORD-{today}'
+#         ).order_by('-order_number').first()
+
+#         if last_order:
+#             last_num = int(last_order.order_number.split('-')[-1])
+#             new_num = last_num + 1
+#         else:
+#             new_num = 1
+
+#         order_number = f'ORD-{today}-{new_num:04d}'
+
+#         # Calculate total
+#         total_amount = sum(float(item.get('total', 0)) for item in items)
+
+#         # Create order
+#         order = Order.objects.create(
+#             order_number=order_number,
+#             card_code=data.get('card_code', ''),
+#             card_name=data.get('card_name', ''),
+#             bill_to_id=data.get('bill_to_id'),
+#             bill_to_address=data.get('bill_to_address', ''),
+#             ship_to_id=data.get('ship_to_id'),
+#             ship_to_address=data.get('ship_to_address', ''),
+#             dispatch_from_id=data.get('dispatch_from_id'),
+#             dispatch_from_name=data.get('dispatch_from_name', ''),
+#             company=data.get('company', ''),
+#             po_number=data.get('po_number', ''),
+#             total_amount=total_amount,
+#             # status='submitted',
+#             created_by=request.user.id if request.user.is_authenticated else 2,
+#         )
+        
+#         # Create order items
+#         for item in items:
+#             OrderItem.objects.create(
+#                 order=order,
+#                 item_code=item.get('item_code', ''),
+#                 item_name=item.get('item_name', ''),
+#                 category=item.get('category', ''),
+#                 brand=item.get('brand', ''),
+#                 variety=item.get('variety', ''),
+#                 item_type=item.get('item_type', ''),
+#                 qty=item.get('qty', 0),
+#                 pcs=item.get('pcs', 0),
+#                 boxes=item.get('boxes', 0),
+#                 ltrs=item.get('ltrs', 0),
+#                 market_price=item.get('market_price', 0),
+#                 total=item.get('total', 0),
+#                 tax_rate=item.get('tax_rate', 0),
+#             )
+        
+#         # Return created order
+#         # result = CreateOrderSerializer(order).data
+#         return Response({
+#     'id': order.id,
+#     'order_number': order.order_number,
+#     'total_amount': str(order.total_amount),
+#     'status': order.status,
+#     'message': 'Order created successfully'
+# }, status=status.HTTP_201_CREATED)
+
+class OrderStatusList(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self,request):
+        status = OrderStatus.objects.all().values('id','name')
+        return Response(list(status))
+
+@lru_cache
+def get_status(name):
+    return OrderStatus.objects.get(name=name)
 
 class ApproveOrderView(APIView):
     permission_classes = [AllowAny]

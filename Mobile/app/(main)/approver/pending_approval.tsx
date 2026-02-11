@@ -48,11 +48,15 @@ export default function PendingApprovalScreen() {
   useEffect(() => {
     loadOrders();
   }, [activeTab]);
-  
+
   const loadOrders = async () => {
+
     try {
+
       setLoading(true);
       const data = await productService.getOrders(0, activeTab);
+
+      // console.log()
       setOrders(data);
     } catch (error) {
       console.error('Error loading orders:', error);
@@ -61,12 +65,13 @@ export default function PendingApprovalScreen() {
       setLoading(false);
       setRefreshing(false);
     }
+    
   };
 
   const onRefresh = () => {
     setRefreshing(true);
     loadOrders();
-  };
+  };  
 
   const handleApprove = (orderId: number, orderNumber: string) => {
     Alert.alert(
@@ -120,7 +125,7 @@ export default function PendingApprovalScreen() {
       setActionLoading(null);
     }
   };
-  
+
   const renderStatusTabs = () => (
     <View style={styles.tabContainer}>
       {STATUS_TABS.map((tab) => (
@@ -136,8 +141,7 @@ export default function PendingApprovalScreen() {
             style={[
               styles.tabText,
               activeTab === tab.key && styles.activeTabText,
-            ]}
-          >
+            ]}>
             {tab.label}
           </Text>
         </TouchableOpacity>

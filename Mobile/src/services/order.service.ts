@@ -41,6 +41,14 @@ export const orderService = {
     return await api.post('/orders/create/', payload);
   },
 
+  getPartyProducts: async (cardCode: string) => {
+    return await api.get(`/orders/party-products/${cardCode}`);
+  },
+  
+  getorderstatus: async (cardCode: string) => {
+    return await api.get(`/orders/party-products/${cardCode}`);
+  },
+  
 };
 
 export const dispatchService = {
@@ -117,7 +125,7 @@ export const productService = {
     if (variety) url += `variety=${encodeURIComponent(variety)}&`;
     return await api.get(url);
   },
-
+  
   getProducts: async (category?: string, brand?: string, variety?: string, type?: string): Promise<Product[]> => {
     let url = '/orders/products/?';
     if (category) url += `category=${encodeURIComponent(category)}&`;
@@ -141,9 +149,9 @@ export const productService = {
   approveOrder:async(orderId:number):Promise<OrderItemList[]>=>{
     return await api.post(`/orders/${orderId}/approve/`,{});
   },
-  
+
   rejectOrder:async(orderId:number,reason:string):Promise<OrderItemList[]>=>{
     return await api.post(`/orders/${orderId}/reject/`,{reason});
-  }
-  
+  },
+
 };

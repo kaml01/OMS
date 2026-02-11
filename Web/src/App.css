@@ -1,0 +1,141 @@
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: #f5f7ff;
+}
+
+/* Full Page Center */
+.login-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(4, 4, 111, 0.126);
+
+}
+
+/* Login Card Box */
+.login-card {
+  width: 420px;
+  background: white;
+  padding: 40px;
+  border-radius: 18px;
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.08);
+
+}
+
+/* Header Logo */
+.login-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-logo {
+  width: 60px;
+  margin-bottom: 10px;
+}
+
+.login-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: gray;
+  margin: 0;
+}
+
+/* Welcome Text */
+.login-heading {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.login-text {
+  font-size: 14px;
+  color: gray;
+  margin-bottom: 25px;
+    text-align: center;
+
+}
+
+/* Labels */
+.login-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 12px 0 6px;
+  display: block;
+}
+
+/* Input Box with Icon */
+.login-input-box {
+  display: flex;
+  align-items: center;
+  background: #f2f4ff;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.login-input-box i {
+  margin-right: 10px;
+  color: gray;
+}
+
+.login-input-box input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  background: transparent;
+}
+
+/* Options */
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  font-size: 13px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.forgot-link {
+  text-decoration: none;
+  color: #3b82f6;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* Button */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 25px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(to right, #3b82f6, #6366f1);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  opacity: 0.9;
+}
+
+
+
+
