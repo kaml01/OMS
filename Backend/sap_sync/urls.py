@@ -2,26 +2,33 @@ from django.urls import path
 from .views import (
     # Sync Operations
     SyncAllView, SyncProductsView, SyncPartiesView, SyncPartyAddressesView,
+    SyncBranchesView,
     # Products
     ProductListView, ProductDetailView, ProductByCodeView,
     # Parties
     PartyListView, PartyDetailView, PartyByCodeView,
     # Party Addresses
     PartyAddressListView,
+    # Branches
+    BranchListView,
     # Sync Logs
     SyncLogListView,
     # Schedule Management
     SyncScheduleListView, SyncScheduleDetailView, ToggleScheduleView,
     # Status
-    SyncStatusView
+    SyncStatusView,
+    PushSalesQuotationView,
+    TestSalesQuotation
 )
-
+ 
 urlpatterns = [
+    
     # ============ Sync Operations (Manual Trigger) ============
     path('sync/all/', SyncAllView.as_view(), name='sync-all'),
     path('sync/products/', SyncProductsView.as_view(), name='sync-products'),
     path('sync/parties/', SyncPartiesView.as_view(), name='sync-parties'),
     path('sync/addresses/', SyncPartyAddressesView.as_view(), name='sync-addresses'),
+    path('sync/branches/', SyncBranchesView.as_view(), name='sync-branches'),  # ✅ POST
     
     # ============ Products ============
     path('products/', ProductListView.as_view(), name='product-list'),
@@ -32,6 +39,9 @@ urlpatterns = [
     path('parties/', PartyListView.as_view(), name='party-list'),
     path('parties/<int:pk>/', PartyDetailView.as_view(), name='party-detail'),
     path('parties/code/<str:card_code>/', PartyByCodeView.as_view(), name='party-by-code'),
+    
+    # ============ Branches ============
+    path('branches/', BranchListView.as_view(), name='branch-list'),  # ✅ GET
     
     # ============ Party Addresses ============
     path('addresses/', PartyAddressListView.as_view(), name='address-list'),
@@ -46,4 +56,8 @@ urlpatterns = [
     
     # ============ Status ============
     path('status/', SyncStatusView.as_view(), name='sync-status'),
+    path('push-quotation/', PushSalesQuotationView.as_view(), name='push-quotation'),
+
+    path('test-quotation/', TestSalesQuotation.as_view()),
+
 ]

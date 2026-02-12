@@ -5,14 +5,13 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django.db.models import Q
 
-from .models import Product, Party, PartyAddress, SyncLog, SyncSchedule
+from .models import Product, Party, PartyAddress, SyncLog, SyncSchedule,Branch
 from .serializers import (
     ProductSerializer, PartySerializer, PartyListSerializer,
     PartyAddressSerializer, SyncLogSerializer, SyncScheduleSerializer,
-    SyncResultSerializer
+    SyncResultSerializer,BranchSerializer,BranchListSerializer
 )
 from .services import SyncService
-
 
 # ============ Sync Operations ============
 
@@ -384,31 +383,151 @@ class ToggleScheduleView(APIView):
 
 # ============ Sync Status ============
 
+# Add this view
+class BranchListView(ListAPIView):
+    """Get all branches"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = BranchSerializer
+    queryset = Branch.objects.all().order_by('category', 'bpl_id')
+
+
+class SyncBranchesView(APIView):
+    """Sync branches from SAP"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            sync_service = SyncService(triggered_by=request.user.username)
+            result = sync_service.sync_branches()
+            
+            return Response({
+                'success': result['success'],
+                'message': f"Synced {result['created'] + result['updated']} branches",
+                'data': {
+                    'processed': result['processed'],
+                    'created': result['created'],
+                    'updated': result['updated'],
+                },
+                'errors': [result['error']] if result.get('error') else None
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': str(e),
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class SyncStatusView(APIView):
-    """Get current sync status and statistics"""
+    """Get sync status with counts"""
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        # Get counts
-        products_count = Product.objects.count()
-        parties_count = Party.objects.count()
-        addresses_count = PartyAddress.objects.count()
-        
-        # Get last sync info
-        last_sync = SyncLog.objects.filter(status='SUCCESS').first()
-        
-        # Get active schedules
-        active_schedules = SyncSchedule.objects.filter(is_active=True).count()
-        
-        return Response({
-            'success': True,
-            'data': {
-                'counts': {
-                    'products': products_count,
-                    'parties': parties_count,
-                    'addresses': addresses_count
+        try:
+            # Get last sync and serialize manually
+            last_sync = SyncLog.objects.order_by('-started_at').first()
+            last_sync_data = None
+            
+            if last_sync:
+                last_sync_data = {
+                    'id': last_sync.id,
+                    'sync_type': last_sync.sync_type,
+                    'status': last_sync.status,
+                    'records_processed': last_sync.records_processed,
+                    'records_created': last_sync.records_created,
+                    'records_updated': last_sync.records_updated,
+                    'started_at': last_sync.started_at.isoformat() if last_sync.started_at else None,
+                    'completed_at': last_sync.completed_at.isoformat() if last_sync.completed_at else None,
+                    'triggered_by': last_sync.triggered_by,
+                }
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'counts': {
+                        'products': Product.objects.count(),
+                        'parties': Party.objects.count(),
+                        'addresses': PartyAddress.objects.count(),
+                        'branches': Branch.objects.count(),
+                    },
+                    'last_sync': last_sync_data,  # ✅ Now serializable
+                    'active_schedules': SyncSchedule.objects.filter(is_active=True).count(),
+                }
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': str(e),
+            }, status=500)
+
+class PushSalesQuotationView(APIView):
+
+    def post(self, request):
+        order_id = request.data.get("order_id")
+
+        if not order_id:
+            return Response(
+                {"error": "order_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            order = Order.objects.get(id=order_id)
+
+            service = SyncService(triggered_by='manual')
+            sap_response = service.create_sales_quotation(order)
+
+            return Response(
+                {
+                    "message": "Quotation created successfully",
+                    "sap_response": sap_response
                 },
-                'last_sync': SyncLogSerializer(last_sync).data if last_sync else None,
-                'active_schedules': active_schedules
+                status=status.HTTP_200_OK
+            )
+
+        except Order.DoesNotExist:
+            return Response(
+                {"error": "Order not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class TestSalesQuotation(APIView):
+
+    def post(self, request):
+        try:
+            # Static dummy order object bana lo
+            order = {
+                "CardCode": "CUSTA000486",
+                "DocDate": "2026-02-10",
+                "DocDueDate": "2026-02-15",
+                "TaxDate": "2026-02-10",
+                "NumAtCard": "7801514523",
+                "Comments": " ",
+                "ShipToCode": "WAL MART INDIA PVT LTD LUDHIANA 4717",
+                "PayToCode": "WAL MART INDIA PVT LTD LUDHIANA 4717",
+                "BPL_IDAssignedToInvoice" : 3,
+                "DocumentLines": [
+                  {
+                    "ItemCode": "FG0000145",
+                    "Quantity": 84,
+                    "UnitPrice": 1286,
+                    "WarehouseCode": "GP-FG"
+                  }
+                ]
             }
-        })
+
+            service = SyncService(triggered_by="manual_test")
+            result = service.create_sales_quotation(order)
+
+            return Response(result, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )

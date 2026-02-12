@@ -97,10 +97,16 @@ DATABASES = {
     }
 }
 
-SAP_DB_HOST = '103.89.45.75'
-SAP_DB_NAME = 'Jivo_All_Branches_Live'
-SAP_DB_USER = 'ab'
-SAP_DB_PASSWORD = 'Jivo@!@#$'
+SAP_DB_HOST = config('SAP_DB_HOST')
+SAP_DB_NAME = config('SAP_DB_NAME')
+SAP_DB_USER = config('SAP_DB_USER')
+SAP_DB_PASSWORD = config('SAP_DB_PASSWORD')
+
+HANA_SERVICE_LAYER_URL = config('HANA_SERVICE_LAYER_URL')
+HANA_USERNAME = config('HANA_USERNAME')
+HANA_PASSWORD = config('HANA_PASSWORD')
+HANA_COMPANY_DB = config('HANA_COMPANY_DB')
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

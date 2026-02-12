@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Party, PartyAddress, SyncLog, SyncSchedule
+from .models import Product, Party, PartyAddress, Branch, SyncLog, SyncSchedule
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -12,12 +12,15 @@ class ProductSerializer(serializers.ModelSerializer):
         ]
 
 
+# ✅ MOVE THIS BEFORE PartySerializer
 class PartyAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartyAddress
         fields = [
-            'id', 'card_code', 'address_id', 'address_type',
-            'gst_number', 'full_address', 'synced_at', 'created_at'
+            'id', 'card_code', 'address_name', 'address_type',
+            'gst_number', 'full_address', 
+            'state', 'city', 'zip_code', 'country', 'category',
+            'synced_at', 'created_at'
         ]
 
 
@@ -28,19 +31,34 @@ class PartySerializer(serializers.ModelSerializer):
         model = Party
         fields = [
             'id', 'card_code', 'card_name', 'address', 'state',
-            'main_group', 'chain', 'country', 'card_type',
+            'main_group', 'chain', 'country', 'card_type', 'category',
             'synced_at', 'created_at', 'addresses'
         ]
 
 
 class PartyListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for listing parties without addresses"""
-    
     class Meta:
         model = Party
         fields = [
             'id', 'card_code', 'card_name', 'state',
-            'main_group', 'card_type', 'synced_at'
+            'main_group', 'card_type', 'category', 'synced_at'
+        ]
+
+
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = [
+            'id', 'bpl_id', 'bpl_name', 'category',
+            'is_active', 'created_at', 'updated_at'
+        ]
+
+
+class BranchListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = [
+            'id', 'bpl_id', 'bpl_name', 'category', 'is_active'
         ]
 
 
@@ -72,10 +90,21 @@ class SyncScheduleSerializer(serializers.ModelSerializer):
 
 
 class SyncResultSerializer(serializers.Serializer):
-    """Serializer for sync operation results"""
     success = serializers.BooleanField()
     processed = serializers.IntegerField()
     created = serializers.IntegerField()
     updated = serializers.IntegerField()
     errors = serializers.ListField(child=serializers.CharField(), required=False)
     message = serializers.CharField(required=False)
+
+
+class SyncStatusSerializer(serializers.Serializer):
+    class CountsSerializer(serializers.Serializer):
+        products = serializers.IntegerField()
+        parties = serializers.IntegerField() 
+        addresses = serializers.IntegerField()
+        branches = serializers.IntegerField()
+    
+    counts = CountsSerializer()
+    last_sync = SyncLogSerializer(allow_null=True)
+    active_schedules = serializers.IntegerField()

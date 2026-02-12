@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Party, PartyAddress, SyncLog, SyncSchedule
+from .models import Product, Party, PartyAddress, Branch, SyncLog, SyncSchedule
 
 
 @admin.register(Product)
@@ -12,18 +12,26 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Party)
 class PartyAdmin(admin.ModelAdmin):
-    list_display = ['card_code', 'card_name', 'state', 'main_group', 'card_type', 'synced_at']
-    list_filter = ['card_type', 'state', 'main_group']
+    list_display = ['card_code', 'card_name', 'category', 'state', 'main_group', 'synced_at']
+    list_filter = ['category', 'card_type', 'state', 'main_group']
     search_fields = ['card_code', 'card_name']
-    readonly_fields = ['synced_at', 'created_at']
+    readonly_fields = ['synced_at']  # ✅ FIXED - removed 'created_at' (doesn't exist)
 
 
 @admin.register(PartyAddress)
 class PartyAddressAdmin(admin.ModelAdmin):
-    list_display = ['card_code', 'address_id', 'address_type', 'gst_number', 'synced_at']
-    list_filter = ['address_type']
-    search_fields = ['card_code', 'gst_number', 'full_address']
-    readonly_fields = ['synced_at', 'created_at']
+    list_display = ['card_code', 'address_name', 'address_type', 'category', 'state', 'city', 'gst_number', 'synced_at']  # ✅ FIXED - address_id → address_name
+    list_filter = ['category', 'address_type', 'state']
+    search_fields = ['card_code', 'address_name', 'gst_number', 'full_address']
+    readonly_fields = ['synced_at']  # ✅ FIXED - removed 'created_at' (doesn't exist)
+
+
+@admin.register(Branch)
+class BranchAdmin(admin.ModelAdmin):
+    list_display = ['bpl_id', 'bpl_name', 'category', 'is_active', 'updated_at']
+    list_filter = ['category', 'is_active']
+    search_fields = ['bpl_id', 'bpl_name']
+    readonly_fields = ['created_at', 'updated_at']
 
 
 @admin.register(SyncLog)
