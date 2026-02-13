@@ -12,7 +12,7 @@ interface Props {
 export default function SalesLineChart({ data }: Props) {
   const screenWidth = Dimensions.get('window').width - SPACING.lg * 2;
 
-  if (!data.length) {
+  if (!data || !data.length) {
     return (
       <Surface style={styles.card}>
         <Text style={styles.title}>Monthly Revenue Trend</Text>

@@ -61,7 +61,7 @@ export default function DashboardScreen() {
     try {
       const token = await storage.getAccessToken();
       const result = await api.get('/orders/dashboard/admin/', token || undefined);
-      if (result && !result.error) {
+      if (result && !result.error && result.total_orders !== undefined) {
         setData(result);
       }
     } catch (error) {
@@ -79,7 +79,7 @@ export default function DashboardScreen() {
         `/orders/dashboard/admin/charts/?line_year=${ly}&year=${dy}&month=${dm}`,
         token || undefined
       );
-      if (result && !result.error) {
+      if (result && !result.error && result.monthly_sales) {
         setChartData(result);
       }
     } catch (error) {

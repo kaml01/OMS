@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import LoginView, ProfileView,StateListView,CompanyListView,MainGroupListView,CreateUserView
+from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     LoginView,
     ProfileView,
@@ -24,6 +24,7 @@ from .views import (
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('profile/', ProfileView.as_view(), name='profile'),
 
     # Master data APIS
