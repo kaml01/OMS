@@ -20,7 +20,7 @@ class PartyAddressSerializer(serializers.ModelSerializer):
             'id', 'card_code', 'address_name', 'address_type',
             'gst_number', 'full_address', 
             'state', 'city', 'zip_code', 'country', 'category',
-            'synced_at', 'created_at'
+            'synced_at'
         ]
 
 

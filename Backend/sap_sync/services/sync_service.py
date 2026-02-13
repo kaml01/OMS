@@ -10,7 +10,6 @@ from ..models import SalesQuotationLog
 
 logger = logging.getLogger(__name__)
 
-
 class SyncService:
     def __init__(self, triggered_by='manual'):
         self.triggered_by = triggered_by
@@ -398,7 +397,6 @@ class SyncService:
 
         return response.json()
 
-
     # ---------------- MAP ORDER ---------------- #
 
     def map_order_to_sap(self, order):
@@ -424,7 +422,7 @@ class SyncService:
         }
 
 # example 
-# def map_order_to_sap(self, order):
+# def map_order_to_sap(self, order): 
 #         return {
 #                 "CardCode": "CUSTA000486",
 #                 "DocDate": "2026-02-10",
@@ -458,6 +456,7 @@ class SyncService:
         )
 
         try:
+
             if not hasattr(self, 'sap_session'):
                 self.sap_login()
      
