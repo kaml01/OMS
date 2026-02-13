@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     # Local apps
     'users',
     'orders',
-    'django_apscheduler',
+    # 'django_apscheduler',
     'sap_sync',
 ]
 
