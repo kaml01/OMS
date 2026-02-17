@@ -48,19 +48,13 @@ export default function DashboardScreen() {
   const [donutYear, setDonutYear] = useState(new Date().getFullYear());
   const [donutMonth, setDonutMonth] = useState(0);
 
-  useEffect(() => {
-    fetchDashboard();
-    fetchChartData(lineYear, donutYear, donutMonth);
-  }, []);
-
-  useEffect(() => {
-    fetchChartData(lineYear, donutYear, donutMonth);
-  }, [lineYear, donutYear, donutMonth]);
+  const getDashboardBase = () =>
+    user?.role?.toLowerCase() === 'manager' ? '/orders/dashboard/manager/' : '/orders/dashboard/admin/';
 
   const fetchDashboard = async () => {
     try {
       const token = await storage.getAccessToken();
-      const result = await api.get('/orders/dashboard/admin/', token || undefined);
+      const result = await api.get(getDashboardBase(), token || undefined);
       if (result && !result.error && result.total_orders !== undefined) {
         setData(result);
       }
@@ -76,7 +70,7 @@ export default function DashboardScreen() {
     try {
       const token = await storage.getAccessToken();
       const result = await api.get(
-        `/orders/dashboard/admin/charts/?line_year=${ly}&year=${dy}&month=${dm}`,
+        `${getDashboardBase()}charts/?line_year=${ly}&year=${dy}&month=${dm}`,
         token || undefined
       );
       if (result && !result.error && result.monthly_sales) {
@@ -88,6 +82,17 @@ export default function DashboardScreen() {
       setChartLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchDashboard();
+    fetchChartData(lineYear, donutYear, donutMonth);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchChartData(lineYear, donutYear, donutMonth);
+  }, [lineYear, donutYear, donutMonth]);
 
   const stats = data
     ? [

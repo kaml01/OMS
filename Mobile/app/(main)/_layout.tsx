@@ -10,7 +10,7 @@ import { COLORS, RADIUS } from "@/src/constants/theme";
 export default function MainLayout() {
 
   const { user } = useAuth();
-  const role = user?.role || "";
+  const role = user?.role?.toLowerCase() || "";
 
   const canSee = {
     dashboard: ["admin", "manager", "operator"],

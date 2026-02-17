@@ -5,7 +5,7 @@ from django.shortcuts import render
 from .serializers import PartiesSerializer, DispatchLocationSerializer, PartyAddressSerializer,ProductSerializer,CreateOrderSerializer
 from .models import Parties, DispatchLocation, UserPartyAssignment, PartyAddress,ProductDetails,Order,OrderItem
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -467,7 +467,7 @@ class OrderFilterView(APIView):
 
 
 class AdminDashboardKPIView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         today = timezone.now().date()
@@ -494,7 +494,7 @@ class AdminDashboardKPIView(APIView):
 
 
 class AdminDashboardChartsView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         now = timezone.now()
@@ -506,15 +506,15 @@ class AdminDashboardChartsView(APIView):
 
         # Date boundaries for donut charts: month=0 means year-to-date
         if month == 0:
-            range_start = datetime(year, 1, 1)
+            range_start = timezone.make_aware(datetime(year, 1, 1))
             if year == now.year:
-                range_end = datetime(now.year, now.month, now.day, 23, 59, 59)
+                range_end = timezone.make_aware(datetime(now.year, now.month, now.day, 23, 59, 59))
             else:
-                range_end = datetime(year, 12, 31, 23, 59, 59)
+                range_end = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
         else:
-            range_start = datetime(year, month, 1)
+            range_start = timezone.make_aware(datetime(year, month, 1))
             last_day = calendar.monthrange(year, month)[1]
-            range_end = datetime(year, month, last_day, 23, 59, 59)
+            range_end = timezone.make_aware(datetime(year, month, last_day, 23, 59, 59))
 
         filtered_orders = Order.objects.filter(
             created_at__gte=range_start,
@@ -522,8 +522,8 @@ class AdminDashboardChartsView(APIView):
         )
 
         # CHART 1: Monthly Sales Timeline (full line_year Jan-Dec)
-        year_start = datetime(line_year, 1, 1)
-        year_end = datetime(line_year, 12, 31, 23, 59, 59)
+        year_start = timezone.make_aware(datetime(line_year, 1, 1))
+        year_end = timezone.make_aware(datetime(line_year, 12, 31, 23, 59, 59))
         monthly_sales = (
             Order.objects
             .filter(created_at__gte=year_start, created_at__lte=year_end)
@@ -601,6 +601,173 @@ class AdminDashboardChartsView(APIView):
         ]
 
         # CHART 5: Category-wise Sales (selected month)
+        category_sales = (
+            OrderItem.objects
+            .filter(order__in=filtered_orders)
+            .values('category')
+            .annotate(total_sales=Sum('total'), count=Count('id'))
+            .order_by('-total_sales')
+        )
+        category_data = [
+            {
+                'category': entry['category'] or 'Unknown',
+                'total_sales': float(entry['total_sales'] or 0),
+                'count': entry['count'],
+            }
+            for entry in category_sales
+        ]
+
+        return Response({
+            'filter': {'year': year, 'month': month, 'line_year': line_year},
+            'monthly_sales': monthly_sales_data,
+            'statewise_orders': statewise_data,
+            'status_distribution': status_data,
+            'top_parties': top_parties_data,
+            'category_sales': category_data,
+        })
+
+
+class ManagerDashboardKPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        if (user.role or '').lower() != 'manager':
+            return Response({'error': 'Only managers can access this endpoint'}, status=status.HTTP_403_FORBIDDEN)
+
+        today = timezone.now().date()
+        current_month_start = today.replace(day=1)
+
+        my_orders = Order.objects.filter(created_by=user.id)
+
+        total_orders = my_orders.count()
+        total_revenue = my_orders.aggregate(total=Sum('total_amount'))['total'] or 0
+        today_orders = my_orders.filter(created_at__date=today).count()
+        this_month_orders = my_orders.filter(created_at__date__gte=current_month_start).count()
+
+        status_counts = {}
+        for choice_value, choice_label in Order.STATUS_CHOICE:
+            status_counts[choice_value] = my_orders.filter(status=choice_value).count()
+
+        return Response({
+            'total_orders': total_orders,
+            'total_revenue': str(total_revenue),
+            'today_orders': today_orders,
+            'this_month_orders': this_month_orders,
+            'status_counts': status_counts,
+        })
+
+
+class ManagerDashboardChartsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        if (user.role or '').lower() != 'manager':
+            return Response({'error': 'Only managers can access this endpoint'}, status=status.HTTP_403_FORBIDDEN)
+
+        my_orders = Order.objects.filter(created_by=user.id)
+
+        now = timezone.now()
+        year = int(request.query_params.get('year', now.year))
+        month = int(request.query_params.get('month', 0))
+        line_year = int(request.query_params.get('line_year', now.year))
+
+        if month == 0:
+            range_start = timezone.make_aware(datetime(year, 1, 1))
+            if year == now.year:
+                range_end = timezone.make_aware(datetime(now.year, now.month, now.day, 23, 59, 59))
+            else:
+                range_end = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
+        else:
+            range_start = timezone.make_aware(datetime(year, month, 1))
+            last_day = calendar.monthrange(year, month)[1]
+            range_end = timezone.make_aware(datetime(year, month, last_day, 23, 59, 59))
+
+        filtered_orders = my_orders.filter(
+            created_at__gte=range_start,
+            created_at__lte=range_end
+        )
+
+        # Monthly Sales Timeline
+        year_start = timezone.make_aware(datetime(line_year, 1, 1))
+        year_end = timezone.make_aware(datetime(line_year, 12, 31, 23, 59, 59))
+        monthly_sales = (
+            my_orders
+            .filter(created_at__gte=year_start, created_at__lte=year_end)
+            .annotate(month=TruncMonth('created_at'))
+            .values('month')
+            .annotate(revenue=Sum('total_amount'), count=Count('id'))
+            .order_by('month')
+        )
+        sales_map = {
+            entry['month'].month: {
+                'revenue': float(entry['revenue'] or 0),
+                'count': entry['count'],
+            }
+            for entry in monthly_sales
+        }
+        monthly_sales_data = [
+            {
+                'month': f'{line_year}-{m:02d}',
+                'label': calendar.month_abbr[m],
+                'revenue': sales_map.get(m, {}).get('revenue', 0),
+                'count': sales_map.get(m, {}).get('count', 0),
+            }
+            for m in range(1, 13)
+        ]
+
+        # State-wise Orders
+        card_codes_in_month = list(
+            filtered_orders.values_list('card_code', flat=True).distinct()
+        )
+        state_map = {}
+        if card_codes_in_month:
+            parties = Parties.objects.filter(
+                card_code__in=card_codes_in_month
+            ).values_list('card_code', 'state')
+            state_map = {cc: (st or 'Unknown') for cc, st in parties}
+
+        state_counts = defaultdict(int)
+        for order in filtered_orders.values('card_code'):
+            state = state_map.get(order['card_code'], 'Unknown')
+            state_counts[state] += 1
+
+        statewise_data = sorted(
+            [{'state': k, 'orders': v} for k, v in state_counts.items()],
+            key=lambda x: x['orders'],
+            reverse=True
+        )
+
+        # Status Distribution
+        status_counts_map = dict(
+            filtered_orders
+            .values('status')
+            .annotate(count=Count('id'))
+            .values_list('status', 'count')
+        )
+        status_data = [
+            {'status': choice_value, 'count': status_counts_map.get(choice_value, 0)}
+            for choice_value, _ in Order.STATUS_CHOICE
+        ]
+
+        # Top Parties by Revenue
+        top_parties = (
+            filtered_orders
+            .values('card_code', 'card_name')
+            .annotate(revenue=Sum('total_amount'))
+            .order_by('-revenue')
+        )
+        top_parties_data = [
+            {
+                'card_code': entry['card_code'],
+                'card_name': entry['card_name'],
+                'revenue': float(entry['revenue'] or 0),
+            }
+            for entry in top_parties
+        ]
+
+        # Category-wise Sales
         category_sales = (
             OrderItem.objects
             .filter(order__in=filtered_orders)
