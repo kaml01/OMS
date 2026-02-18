@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xxd:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(python manage.py showmigrations:*)",
+      "Bash(python manage.py migrate:*)"
+    ]
+  }
+}

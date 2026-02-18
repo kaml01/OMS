@@ -1,54 +1,186 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Text, Surface } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { Dropdown } from 'react-native-element-dropdown';
 import { useAuth } from '@/src/context/AuthContext';
 import { COLORS, SPACING, RADIUS } from '@/src/constants/theme';
+import { api } from '@/src/services/api';
+import { storage } from '@/src/utils/storage';
+import { DashboardChartsData } from '@/src/types/dashboard';
+import MonthPicker from '@/src/components/dashboard/MonthPicker';
+import SalesLineChart from '@/src/components/dashboard/SalesLineChart';
+import StatusPieChart from '@/src/components/dashboard/StatusPieChart';
+import StatewiseBarChart from '@/src/components/dashboard/StatewiseBarChart';
+import TopPartiesChart from '@/src/components/dashboard/TopPartiesChart';
+import CategorySalesChart from '@/src/components/dashboard/CategorySalesChart';
+
+const currentYear = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: currentYear - 2023 }, (_, i) => ({
+  label: String(2024 + i),
+  value: 2024 + i,
+}));
+
+interface DashboardData {
+  total_orders: number;
+  total_revenue: string;
+  today_orders: number;
+  this_month_orders: number;
+  status_counts: {
+    submitted: number;
+    pending_approval: number;
+    approved: number;
+    rejected: number;
+    sap_created: number;
+  };
+}
 
 export default function DashboardScreen() {
   const { user } = useAuth();
-  
-  const stats = [
-    { title: 'Total Orders', value: '156', icon: 'document-text', color: '#2563EB' },
-    { title: 'Pending', value: '23', icon: 'time', color: '#F59E0B' },
-    { title: 'Completed', value: '133', icon: 'checkmark-circle', color: '#22C55E' },
-    { title: 'Revenue', value: '₹4.2L', icon: 'cash', color: '#8B5CF6' },
-  ];
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState<DashboardChartsData | null>(null);
+  const [chartLoading, setChartLoading] = useState(true);
+  // Line chart: year only
+  const [lineYear, setLineYear] = useState(new Date().getFullYear());
+  // Donut charts: year + month (0 = year-to-date)
+  const [donutYear, setDonutYear] = useState(new Date().getFullYear());
+  const [donutMonth, setDonutMonth] = useState(0);
+
+  const getDashboardBase = () =>
+    user?.role?.toLowerCase() === 'manager' ? '/orders/dashboard/manager/' : '/orders/dashboard/admin/';
+
+  const fetchDashboard = async () => {
+    try {
+      const token = await storage.getAccessToken();
+      const result = await api.get(getDashboardBase(), token || undefined);
+      if (result && !result.error && result.total_orders !== undefined) {
+        setData(result);
+      }
+    } catch (error) {
+      console.error('Dashboard fetch error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchChartData = async (ly: number, dy: number, dm: number) => {
+    setChartLoading(true);
+    try {
+      const token = await storage.getAccessToken();
+      const result = await api.get(
+        `${getDashboardBase()}charts/?line_year=${ly}&year=${dy}&month=${dm}`,
+        token || undefined
+      );
+      if (result && !result.error && result.monthly_sales) {
+        setChartData(result);
+      }
+    } catch (error) {
+      console.error('Chart data fetch error:', error);
+    } finally {
+      setChartLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchDashboard();
+    fetchChartData(lineYear, donutYear, donutMonth);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchChartData(lineYear, donutYear, donutMonth);
+  }, [lineYear, donutYear, donutMonth]);
+
+  const stats = data
+    ? [
+        { title: 'Revenue', value: `₹${Number(data.total_revenue).toLocaleString('en-IN')}`, icon: 'cash', color: '#059669' },
+        { title: 'Today', value: String(data.today_orders), icon: 'today', color: '#8B5CF6' },
+        { title: 'This Month', value: String(data.this_month_orders), icon: 'calendar', color: '#0891B2' },
+        { title: 'Total Orders', value: String(data.total_orders), icon: 'document-text', color: '#2563EB' },
+      ]
+    : [];
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      
       <LinearGradient
         colors={[COLORS.primaryDark, COLORS.primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.welcomeCard}>
-
         <View style={styles.decorCircle1} />
         <View style={styles.decorCircle2} />
-        
         <Text style={styles.welcomeText}>Welcome back,</Text>
-        <Text style={styles.userName}>{user?.name || user?.username}! 👋</Text>
+        <Text style={styles.userName}>{user?.name || user?.username}!</Text>
         <Text style={styles.welcomeSubtext}>
           Here's what's happening with your orders today.
         </Text>
       </LinearGradient>
 
-      <View style={styles.statsGrid}>
-        {stats.map((stat, index) => (
-          <Surface key={index} style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: `${stat.color}15` }]}>
-              <Ionicons name={stat.icon as any} size={24} color={stat.color} />
-            </View>
-            <Text style={styles.statValue}>{stat.value}</Text>
-            <Text style={styles.statTitle}>{stat.title}</Text>
-          </Surface>
-        ))}
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: SPACING.xl }} />
+      ) : (
+        <View style={styles.statsGrid}>
+          {stats.map((stat, index) => (
+            <Surface key={index} style={styles.statCard}>
+              <View style={[styles.statIcon, { backgroundColor: `${stat.color}15` }]}>
+                <Ionicons name={stat.icon as any} size={24} color={stat.color} />
+              </View>
+              <Text style={styles.statValue}>{stat.value}</Text>
+              <Text style={styles.statTitle}>{stat.title}</Text>
+            </Surface>
+          ))}
+        </View>
+      )}
+
+      {/* Analytics Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Analytics</Text>
       </View>
 
-      {/* Quick Actions */}
-      <View style={styles.section}>
+      {chartLoading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: SPACING.xl }} />
+      ) : chartData ? (
+        <View style={styles.chartsContainer}>
+          {/* Line chart with its own year picker */}
+          <View style={styles.lineChartHeader}>
+            <Text style={styles.chartSectionLabel}>Revenue Trend</Text>
+            <Dropdown
+              data={YEAR_OPTIONS}
+              labelField="label"
+              valueField="value"
+              value={lineYear}
+              onChange={(item) => setLineYear(item.value)}
+              style={styles.yearDropdown}
+              selectedTextStyle={styles.yearDropdownText}
+            />
+          </View>
+          <SalesLineChart data={chartData.monthly_sales} />
+
+          {/* Donut charts with their own month+year filter */}
+          <View style={styles.donutFilterRow}>
+            <Text style={styles.chartSectionLabel}>Overview</Text>
+          </View>
+          <MonthPicker
+            year={donutYear}
+            month={donutMonth}
+            onChangeYear={setDonutYear}
+            onChangeMonth={setDonutMonth}
+          />
+          <View style={styles.chartsGrid}>
+            <View style={styles.chartsRow}>
+              <StatusPieChart data={chartData.status_distribution} />
+              <CategorySalesChart data={chartData.category_sales} />
+            </View>
+            <TopPartiesChart data={chartData.top_parties} />
+            <StatewiseBarChart data={chartData.statewise_orders} />
+          </View>
+        </View>
+      ) : null}
+
+      {/* <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsRow}>
           <Surface style={styles.actionCard}>
@@ -64,7 +196,7 @@ export default function DashboardScreen() {
             <Text style={styles.actionText}>Reports</Text>
           </Surface>
         </View>
-      </View>
+      </View> */}
     </ScrollView>
   );
 }
@@ -100,56 +232,97 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.05)',
   },
   welcomeText: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'rgba(255,255,255,0.8)',
   },
   userName: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700',
     color: COLORS.textLight,
     marginTop: 4,
   },
   welcomeSubtext: {
-    fontSize: 13,
+    fontSize: 14,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 8,
   },
   statsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     paddingHorizontal: SPACING.md,
-    gap: SPACING.md,
+    gap: SPACING.sm,
   },
   statCard: {
-    width: '47%',
+    flex: 1,
     backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
     elevation: 2,
+    alignItems: 'center',
   },
   statIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: RADIUS.md,
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.sm,
+    marginBottom: 4,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
     color: COLORS.text,
   },
   statTitle: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    marginTop: 4,
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  chartsContainer: {
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
+  lineChartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  chartSectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  yearDropdown: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    width: 100,
+  },
+  yearDropdownText: {
+    fontSize: 15,
+    color: COLORS.text,
+  },
+  donutFilterRow: {
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xs,
+  },
+  chartsGrid: {
+    gap: SPACING.sm,
+  },
+  chartsRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
   },
   section: {
     padding: SPACING.lg,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: COLORS.text,
     marginBottom: SPACING.md,
@@ -167,7 +340,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   actionText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     color: COLORS.text,
     marginTop: SPACING.sm,

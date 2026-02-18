@@ -1,4 +1,6 @@
+
 import React, { useEffect } from 'react';
+
 import {
   View,
   StyleSheet,
@@ -14,7 +16,8 @@ import { Text, Divider } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
-import { COLORS, RADIUS } from '@/src/constants/theme';
+
+import { COLORS, SPACING, RADIUS } from '@/src/constants/theme';
 
 export default function CustomDrawer(props: DrawerContentComponentProps) {
   const { user, logout } = useAuth();
@@ -23,6 +26,7 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
     await logout();
     router.replace('/(auth)/login' as any);
   };
+
 
   useEffect(()=>{
     console.log('role'+user?.role);
@@ -35,7 +39,9 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
         colors={[COLORS.primaryDark, COLORS.primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.header}>
+        style={styles.header}
+      >
+
         {/* Decorative circles */}
         <View style={styles.decorCircle1} />
         <View style={styles.decorCircle2} />
@@ -69,13 +75,15 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
       <DrawerContentScrollView
         {...props}
         contentContainerStyle={styles.drawerContent}
+
         showsVerticalScrollIndicator={false}>
+
         <View style={styles.menuSection}>
           <Text style={styles.menuSectionTitle}>MAIN MENU</Text>
           <DrawerItemList {...props} />
         </View>
       </DrawerContentScrollView>
-        
+
       {/* Footer */}
       <View style={styles.footer}>
         <Divider style={styles.divider} />
@@ -90,7 +98,6 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
         <Text style={styles.version}>Version 1.0.0</Text>
 
       </View>
-        
     </View>
   );
 }

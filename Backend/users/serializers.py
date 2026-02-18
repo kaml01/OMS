@@ -22,6 +22,7 @@ class StateSerializer(serializers.ModelSerializer):
         model = State
         fields = ['id', 'name', 'code']
 
+
 class UserSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
     main_groups = MainGroupSerializer(many=True, read_only=True)

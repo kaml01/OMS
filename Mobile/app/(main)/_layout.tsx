@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Drawer } from "expo-router/drawer";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -9,6 +10,22 @@ import { COLORS, RADIUS } from "@/src/constants/theme";
 export default function MainLayout() {
   const { user } = useAuth();
   const userRole = user?.role?.toLowerCase() || '';
+  const role = user?.role?.toLowerCase() || "";
+
+  const canSee = {
+    dashboard: ["admin", "manager", "operator"],
+    orders: ["manager", "operator"],
+    "orders/create": ["manager"],
+    "orders/orderslist": ["manager"],
+    "users/create": ["admin"],
+    approver: ["approver"],
+    reports: ["admin", "manager"],
+    settings: ["admin"],
+  };
+
+  useEffect(() => {
+    console.log("useridd " + canSee["approver"].includes(role));
+  });
 
   const canSee: Record<string, string[]> = {
     dashboard: ['admin', 'manager', 'approver'],
@@ -90,6 +107,9 @@ export default function MainLayout() {
           options={{
             drawerLabel: 'Pending Approvals',
             title: 'Pending Approvals',
+            drawerLabel: "Pending Approvals",
+            title: "Pending Approvals",
+            headerShown: true,
             drawerIcon: ({ color }) => (
               <Ionicons name="checkmark-done-outline" size={22} color={color} />
             ),
