@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Role,
 } from 'react-native';
 import {
   TextInput,
@@ -15,7 +16,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, GRADIENTS } from '@/src/constants/theme';
-import { masterService, State, Company, MainGroup } from '@/src/services/master.service';
+import { masterService, State, Company, MainGroup, UserRole } from '@/src/services/master.service';
 import MultiSelectDropdown from '@/src/components/common/MultiSelectDropdown';
 import Dropdown from '@/src/components/common/DropdownProps';
 import { userService } from '@/src/services/user.service';
@@ -25,17 +26,6 @@ export default function CreateUserScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // const [formData, setFormData] = useState({
-  //   name: '',
-  //   username: '',
-  //   password: '',
-  //   email: '',
-  //   phone: '',
-  //   role: '',
-  //   companies: '',    
-  //   mainGroup: [],    
-  //   state: []
-  // });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -54,12 +44,7 @@ export default function CreateUserScreen() {
   const [states, setStates] = useState<State[]>();
   const [companies, setCompanies] = useState<Company[]>();
   const [mainGroups, setMainGroups] = useState<MainGroup[]>();
-
-  // TODO: Fetch from API
-  const roles = ['admin', 'manager', 'operator'];
-  // const companies = ['Jivo Wellness', 'Jivo Mart'];
-  // const mainGroups = ['Staff', 'Ecommerce', 'Purchase Oil'];
-  // const states = ['Delhi', 'Punjab', 'Haryana', 'Uttar Pradesh'];
+  const [roles, setRoles] = useState<UserRole[]>([]);
 
   const updateField = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -67,7 +52,7 @@ export default function CreateUserScreen() {
       setErrors({ ...errors, [field]: '' });
     }
   };
-  
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -83,11 +68,11 @@ export default function CreateUserScreen() {
   };
 
   const handleSubmit = async () => {
-
+     console.log('Creating user:');
     if (!validate()) return;
 
     setLoading(true);
-
+    
     try {
 
       const userData = {
@@ -151,16 +136,17 @@ export default function CreateUserScreen() {
     try {
 
       // setDataLoading(true);
-      const [statesData, companiesData, mainGroupsData] = await Promise.all([
+      const [statesData, companiesData, mainGroupsData,rolesData] = await Promise.all([
         masterService.getStates(),
         masterService.getCompanies(),
-        masterService.getMainGroups()
+        masterService.getMainGroups(),
+        masterService.getRoles(),
       ]);
       console.log('states' + statesData);
       setStates(statesData);
       setCompanies(companiesData);
       setMainGroups(mainGroupsData);
-
+      setRoles(rolesData);
     } catch (error) {
       console.error('Error fetching master data:', error);
       Alert.alert('Error', 'Failed to load form data. Please try again.');
@@ -310,19 +296,19 @@ export default function CreateUserScreen() {
             <View style={styles.selectRow}>
               {roles.map((role) => (
                 <Button
-                  key={role}
-                  mode={formData.role === role ? 'contained' : 'outlined'}
-                  onPress={() => updateField('role', role)}
+                  key={role.id}
+                  mode={formData.role === role.name ? 'contained' : 'outlined'}
+                  onPress={() => updateField('role', role.id.toString())}
                   style={[
                     styles.selectButton,
-                    formData.role === role && styles.selectButtonActive,
+                    formData.role === role.name && styles.selectButtonActive,
                   ]}
                   labelStyle={[
                     styles.selectButtonLabel,
-                    formData.role === role && styles.selectButtonLabelActive,
+                    formData.role === role.name && styles.selectButtonLabelActive,
                   ]}
-                  buttonColor={formData.role === role ? COLORS.primary : 'transparent'}>
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                  buttonColor={formData.role === role.name ? COLORS.primary : 'transparent'}>
+                  {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
                 </Button>
               ))}
             </View>
@@ -332,18 +318,7 @@ export default function CreateUserScreen() {
           {/* State */}
           <View style={styles.field}>
 
-            {/* <MultiSelectDropdown
-              label="Company"
-              data={companyOptions}
-              values={formData.companies}
-              onChange={(values: any) => updateField('companies', values)}
-              placeholder="Select companies..."
-              error={errors.companies}
-              required
-              searchable={false}
-              icon="business-outline"
-            /> */}
-
+        
             <Dropdown
               label="Company"
               data={companyOptions}

@@ -1,4 +1,5 @@
 from django.urls import path
+from .views import LoginView, ProfileView,StateListView,CompanyListView,MainGroupListView,CreateUserView,RoleListView
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     LoginView,
@@ -32,6 +33,7 @@ urlpatterns = [
     path('companies/',CompanyListView.as_view(),name='companies'),
     path('mainGroup/', MainGroupListView.as_view(), name='mainGroup'),
     path('users/create/', CreateUserView.as_view(), name='create-user'),
+    path('roles/', RoleListView.as_view(), name='roles-list'),
 
     # Master data APIs
     path('states/', StateListView.as_view(), name='states'),

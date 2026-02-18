@@ -1,3 +1,5 @@
+import { black } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
+
 export const COLORS = {
   // Primary Blue Theme (from HTML)
   primary: '#2563EB',
@@ -24,13 +26,13 @@ export const COLORS = {
   textSecondary: '#64748B',
   textLight: '#FFFFFF',
   textMuted: '#94A3B8',
-
+  black :'#00000',
   // Borders
   border: '#E2E8F0',
   borderLight: '#E8EEF4',
   borderBlue: '#DBEAFE',
   borderDashed: '#BFDBFE',
-
+  
   // Status
   error: '#DC2626',
   errorLight: '#FEF2F2',

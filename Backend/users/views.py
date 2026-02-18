@@ -4,11 +4,14 @@ from rest_framework.response import Response
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .serializers import LoginSerializer, UserSerializer,StateSerializer, CompanySerializer,MainGroupSerializer,CreateUserSerializer
-
 from rest_framework.generics import ListAPIView
-from .models import State, Company, MainGroup
+from .models import State, Company, MainGroup,UserRole
+
+class RoleListView(APIView):
+    def get(self, request):
+        roles = UserRole.objects.filter(is_active=True).values('id', 'name', 'display_name')
+        return Response(list(roles))
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -115,7 +118,7 @@ class CompanyListView(ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = CompanySerializer
     queryset = Company.objects.filter(is_active=True).order_by('name')
-
+    
 class MainGroupListView(ListAPIView):
     """Get all active main groups"""
     permission_classes = [AllowAny]

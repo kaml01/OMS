@@ -59,6 +59,17 @@ class State(models.Model):
 
         return self.name    
 
+class UserRole(models.Model):
+    name = models.CharField(max_length=50, unique=True)  # e.g. admin, manager, operator
+    display_name = models.CharField(max_length=100)       # e.g. Admin, Manager, Operator
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'users_role'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.display_name        
         return self.name
 
 
@@ -70,11 +81,13 @@ class User(AbstractUser):
     name = models.CharField(max_length = 150)
     email = models.EmailField(max_length=15, blank=True, null=True)
     phone = models.CharField(max_length = 15, blank = True, null= True)
-    role = models.CharField(max_length = 15, blank = True,null = True)
-  
-    email = models.EmailField(max_length = 15,blank = True,null = True)
-    phone = models.CharField(max_length = 15, blank = True, null= True)
-    role = models.CharField(max_length = 15, blank = True,null = True)
+    role = models.ForeignKey(
+    'users.UserRole',
+    on_delete=models.PROTECT,
+    related_name='users',
+    null=True,
+    blank=True,
+    )
     
     company = models.ManyToManyField(Company, blank=True, related_name='users')
     main_group = models.ManyToManyField(MainGroup, blank=True, related_name='users')
@@ -84,11 +97,9 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    def __str__(self):
+    def __str__(self):  
         return self.username
 
-    def __str__(self):
-        return self.username
 
     name = models.CharField(max_length=150)
     email = models.EmailField(max_length=50, blank=True, null=True)

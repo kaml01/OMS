@@ -27,7 +27,7 @@ class UserPartyAssignment(models.Model):
     class Meta:
         managed = False
         db_table = 'user_party_assignments'
-
+    
     def __str__(self):
         return f"{self.user_id} - {self.card_code}"
 
@@ -80,15 +80,15 @@ class ProductDetails(models.Model):
 
     def __str__(self):
         return self.item_name
-    
+
 class Order(models.Model):
-    STATUS_CHOICE=[
-        ('submitted','Submitted'),
-        ('pending_approval','Pending Approval'),
-        ('approved','Approved'),
-        ('rejected','Rejected'),
-        ('sap_created','SAP Created'),
-    ]
+    # STATUS_CHOICE=[
+    #     ('submitted','Submitted'),
+    #     ('pending_approval','Pending Approval'),
+    #     ('approved','Approved'),
+    #     ('rejected','Rejected'),
+    #     ('sap_created','SAP Created'),
+    # ]
 
     order_number = models.CharField(max_length= 50,unique=False)
     card_code = models.CharField(max_length=100)
@@ -102,7 +102,7 @@ class Order(models.Model):
     company = models.CharField(max_length=255, blank=True, null=True)
     po_number = models.CharField(max_length=100, blank=True, null=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, default='submitted')
+    status = models.ForeignKey('OrderStatus', on_delete=models.PROTECT, default=1, related_name='orders', db_column='status')
     created_by = models.IntegerField(blank=True, null=True)
     approved_by = models.IntegerField(blank=True, null=True)
     approved_at = models.DateTimeField(blank=True, null=True)
@@ -137,11 +137,49 @@ class OrderItem(models.Model):
     basic_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    
+    basic_price = models.DecimalField(max_digits=10,decimal_places=2,default=0)
+
     class Meta:
         db_table = 'order_items'
 
     def __str__(self):
         return f"{self.item_name} x {self.qty}"
 
+class OrdersLog(models.Model):
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='order_logs')
+    action = models.ForeignKey('OrderStatus', on_delete=models.PROTECT, related_name='+')
+    performed_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    remarks = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
+    class Meta:
+        managed = False
+        db_table = 'order_logs'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.order.order_number}] {self.action.name}"
+
+class OrderStatus(models.Model):
+    code = models.CharField(max_length=30, unique=True)
+    name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    # display_name = models.CharField(max_length=100)
+    #is_active = models.BooleanField(default=True)
+
+    class Meta:
+        managed = False  # Django won't create/alter the table
+        db_table = 'order_statuses'
+
+    def __str__(self):
+        return self.name    
+    
+# Helper function
+def log_order_action(order, action_name, user=None, remarks=''):
+    action = OrderStatus.objects.get(name=action_name)
+    return OrdersLog.objects.create(
+        order=order,
+        action=action,
+        performed_by=user,
+        remarks=remarks
+    )   

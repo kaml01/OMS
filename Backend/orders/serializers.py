@@ -33,5 +33,7 @@ class CreateOrderSerializer(serializers.Serializer):
     company = serializers.CharField(required=False, allow_blank=True, default='')
     po_number = serializers.CharField(required=False, allow_blank=True, default='')
     items = serializers.ListField(child=serializers.DictField())
+    basic_price = serializers.DecimalField(max_digits=10, decimal_places=2, default=0)
+
 
  

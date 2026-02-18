@@ -41,6 +41,14 @@ export const orderService = {
     return await api.post('/orders/create/', payload);
   },
 
+  getPartyProducts: async (cardCode: string) => {
+    return await api.get(`/orders/party-products/${cardCode}`);
+  },
+  
+  getorderstatus: async (cardCode: string) => {
+    return await api.get(`/orders/party-products/${cardCode}`);
+  },
+  
 };
 
 export const dispatchService = {
@@ -95,7 +103,7 @@ export interface CreateOrderPayload {
     tax_rate: number;
   }[];
 }
-
+  
 export interface OrderItemList{
   id:number;
   order_number :string;
@@ -107,7 +115,7 @@ export interface OrderItemList{
   created_by :number;
   created_at:string;
 }
-
+  
 export const productService = {
 
   getFilters: async (category?: string, brand?: string, variety?: string): Promise<ProductFilters> => {
@@ -117,7 +125,7 @@ export const productService = {
     if (variety) url += `variety=${encodeURIComponent(variety)}&`;
     return await api.get(url);
   },
-
+  
   getProducts: async (category?: string, brand?: string, variety?: string, type?: string): Promise<Product[]> => {
     let url = '/orders/products/?';
     if (category) url += `category=${encodeURIComponent(category)}&`;
@@ -136,6 +144,14 @@ export const productService = {
       url+=`status=${statusFilter}&`;
     return await api.get(url);
 
-  }
-  
+  },
+
+  approveOrder:async(orderId:number):Promise<OrderItemList[]>=>{
+    return await api.post(`/orders/${orderId}/approve/`,{});
+  },
+
+  rejectOrder:async(orderId:number,reason:string):Promise<OrderItemList[]>=>{
+    return await api.post(`/orders/${orderId}/reject/`,{reason});
+  },
+
 };
