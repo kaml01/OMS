@@ -22,5 +22,7 @@ urlpatterns = [
     path('api/auth/', include('users.urls')),
     path('api/sap/', include('sap_sync.urls')),
     path('api/login/', include('login.urls')),
+    path('api/orders/', include('orders.urls')),
+
 
 ]

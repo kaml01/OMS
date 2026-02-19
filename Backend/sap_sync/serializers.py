@@ -17,7 +17,7 @@ class PartyAddressSerializer(serializers.ModelSerializer):
         model = PartyAddress
         fields = [
             'id', 'card_code', 'address_id', 'address_type',
-            'gst_number', 'full_address', 'synced_at', 'created_at'
+            'gst_number', 'full_address', 'synced_at'
         ]
 
 
@@ -29,13 +29,13 @@ class PartySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'card_code', 'card_name', 'address', 'state',
             'main_group', 'chain', 'country', 'card_type',
-            'synced_at', 'created_at', 'addresses'
+            'synced_at', 'addresses'
         ]
 
 
 class PartyListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for listing parties without addresses"""
-    
+    # addresses = PartyAddressSerializer(many=True, read_only=True)
     class Meta:
         model = Party
         fields = [

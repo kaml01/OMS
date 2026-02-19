@@ -1,180 +1,287 @@
-import React, { useState } from 'react'
-import {Link} from 'react-router-dom'
-import Dashboard from './Dashboard';
-
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Sidebar({ children }) {
-    const [open, setOpen] = useState(false);
+  const [userOpen, setUserOpen] = useState(false);
+  const [salesOpen, setSalesOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [userRole, setUserRole] = useState("");
+
+  const location = useLocation();
+
+  // Close sidebar
+  const closeSidebar = () => {
+    setMenuOpen(false);
+  };
+
+  useEffect(() => {
+  fetchCurrentUser();
+}, []);
+
+const fetchCurrentUser = async () => {
+  let response = await fetch("http://127.0.0.1:8000/api/auth/current-user/", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("access")}`,
+    },
+  });
+
+  let data = await response.json();
+  console.log("Logged in Role:", data);
+  console.log("TOKEN:", localStorage.getItem("access"));
+
+  setUserRole(data.role);
+
+};
+
   return (
     <>
+      {/* ================= HEADER ================= */}
+      <header className="header">
+        <div className="logo-area">
+          {/* Hamburger Button (Only Mobile) */}
+          <button
+            className="menu-btn"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            ☰
+          </button>
 
-    <div id="top-left">OMS</div>
+          <span className="logo-text">OMS</span>
+        </div>
 
-    <div id="top-right">Admin</div>
+        <div className="header-right">
+          <span className="admin-text">{userRole?.toUpperCase()}</span>
+        </div>
+      </header>
 
-    <div className="dashboard-body">
-    <div className="sidebar">
-      <ul>
-        <li><Link to="/Dashboard">Dashboard</Link></li>
-        <li>
-      {/* Dropdown Toggle */}
-      <div
-        className="dropdown-toggle"
-        onClick={() => setOpen(!open)}
-      >
-        User Management
-      </div>
+      {/* ================= OVERLAY ================= */}
+      {menuOpen && <div className="overlay" onClick={closeSidebar}></div>}
 
-      {/* Dropdown Menu */}
-      {open && (
-        <ul className="dropdown-list">
-          <li>
-            <Link to="">Manage Role</Link>
+      {/* ================= SIDEBAR ================= */}
+      <aside className={`sidebar ${menuOpen ? "open" : ""}`}>
+        <ul>
+          {/* Dashboard */}
+          <li className={location.pathname === "/Dashboard" ? "active" : ""}>
+            <Link to="/Dashboard" onClick={closeSidebar}>
+              Dashboard
+            </Link>
           </li>
+
+          {/* User Management */}
+          {(userRole === 'Admin' || userRole ==='admin' || userRole ==='ADMIN') && (  <li>
+            <div
+              className="dropdown-toggle"
+              onClick={() => setUserOpen(!userOpen)}
+            >
+              User Management
+            </div>
+
+            {userOpen && (
+              <ul className="dropdown-list">
+                <li>
+                  <Link to="/ManageRole" onClick={closeSidebar}>
+                    Manage Role
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/App_User" onClick={closeSidebar}>
+                    App Users
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>)}
+        
+
+          {/* Sales */}
+          {(userRole === 'Manager' || userRole === 'manager' || userRole === 'MANAGER') &&  <li>
+            <div
+              className="dropdown-toggle"
+              onClick={() => setSalesOpen(!salesOpen)}
+            >
+              Sales
+            </div>
+
+            {salesOpen && (
+              <ul className="dropdown-list">
+                <li>
+                  <Link to="/Add_Sales" onClick={closeSidebar}>
+                    Add Sales
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>}
+         
+
+          {/* Other */}
           <li>
-            <Link to="/App_User">App Users</Link>
+            <Link to="/Pricelist" onClick={closeSidebar}>
+              Pricelist
+            </Link>
+          </li>
+
+          <li>
+            <Link to="/Reports" onClick={closeSidebar}>
+              Reports
+            </Link>
           </li>
         </ul>
-      )}
-    </li>
-        <li><Link to="">Sales</Link></li>
-        <li><Link to="">Pricelist</Link></li>
-        <li><Link to="">Reports</Link></li>
-      </ul>
-    </div>
+      </aside>
 
-    <div className="content-area">
-          {children}
-        </div>
-   
-    </div>
+      {/* ================= CONTENT ================= */}
+      <main className="content-area">{children}</main>
 
-    <style>{
-      `
-    /* Page Background */
-body {
-  margin: 0;
-  font-family: "Poppins", sans-serif;
-  background: #f5f7ff;
-}
+      {/* ================= CSS ================= */}
+      <style>{`
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: system-ui;
+        }
 
-/* Top Bar Left */
-#top-left {
-  width: 20%;
-  display: inline-block;
-  text-align: center;
-  padding: 15px;
+        body {
+          background: #f8fafc;
+        }
 
-  font-size: 20px;
-  font-weight: bold;
+        /* HEADER */
+        .header {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 60px;
+          background: #0f172a;
+          color: white;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0 20px;
+          z-index: 1000;
+        }
 
-background: linear-gradient(to right, #3a61a0, #0a0b41);
-  color: white;
-}
+        .logo-area {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
 
-/* Top Bar Right */
-#top-right {
-  width: 80%;
-  display: inline-block;
-  text-align: center;
-  padding: 15px;
+        .logo-text {
+          font-size: 20px;
+          font-weight: bold;
+        }
 
-  font-size: 20px;
-  font-weight: bold;
+        .admin-text {
+          font-size: 16px;
+        }
 
-  background: linear-gradient(to right, #3a61a0, #0a0b41);
-  color: white;
+        /* Hamburger */
+        .menu-btn {
+          display: none;
+          font-size: 26px;
+          background: none;
+          border: none;
+          color: white;
+          cursor: pointer;
+        }
 
+        /* SIDEBAR */
+        .sidebar {
+          position: fixed;
+          top: 60px;
+          left: 0;
+          width: 250px;
+          height: calc(100vh - 60px);
+          background: #1e293b;
+          padding: 20px;
+          overflow-y: auto;
+          transition: 0.3s;
+          z-index: 999;
+        }
 
-  // background: white;
-  // color: #111827;
+        .sidebar ul {
+          list-style: none;
+        }
 
- 
-}
+        .sidebar li {
+          margin: 10px 0;
+        }
 
-/* Wrapper */
-.dashboard-body {
-  display: flex;
-   background: #f5f7ff;
-    min-height: 95vh;
-}
+        .sidebar a,
+        .dropdown-toggle {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 15px;
+          border-radius: 10px;
+          color: white;
+          text-decoration: none;
+          cursor: pointer;
+          transition: 0.3s;
+        }
 
-/* Sidebar */
-.sidebar {
-  width: 20%;
-  height: 95vh;
- background: linear-gradient(to right, #12346b, #06063bb8);
+        .sidebar a:hover,
+        .dropdown-toggle:hover {
+          background: #334155;
+        }
 
-  border-right: 1px solid #e5e7eb;
-  box-shadow: 4px 0px 15px rgba(0, 0, 0, 0.05);
+        /* Active */
+        // .active a {
+        //   background: #2563eb;
+        // }
 
-  padding: 20px;
-}
+        /* Dropdown */
+        .dropdown-list {
+          margin-left: 15px;
+          margin-top: 5px;
+        }
 
-/* Sidebar List */
-.sidebar ul {
-  padding: 0;
-  margin: 0;
-}
+        .dropdown-list li a {
+          font-size: 14px;
+          padding: 10px;
+          background: #273549;
+        }
 
-/* Sidebar Items */
-.sidebar ul li {
-  list-style: none;
-  margin: 12px 0;
+        /* CONTENT */
+        .content-area {
+          margin-left: 250px;
+          margin-top: 60px;
+          
+          padding: 25px;
+          min-height: calc(100vh - 60px);
+        }
 
-  padding: 12px 15px;
-  border-radius: 12px;
+        /* Overlay */
+        .overlay {
+          position: fixed;
+          top: 60px;
+          left: 0;
+          width: 100%;
+          height: calc(100vh - 60px);
+          background: rgba(0, 0, 0, 0.4);
+          z-index: 998;
+        }
 
-  font-size: 15px;
-  font-weight: 500;
+        /* MOBILE */
+        @media (max-width: 768px) {
+          .menu-btn {
+            display: block;
+          }
 
-  color: #fffcfc;
-  cursor: pointer;
+          .sidebar {
+            left: -260px;
+          }
 
-  transition: 0.3s;
-}
+          .sidebar.open {
+            left: 0;
+          }
 
-/* Hover Effect */
-.sidebar ul li:hover {
-  // background: #f2f4ff;
- color: #3b82f6;
-  padding-left: 20px;
-}
-
-/* Dropdown Nested Menu */
-.sidebar ul li ul {
-  margin-top: 10px;
-  margin-left: 15px;
-}
-
-.sidebar ul li ul li {
-  font-size: 14px;
-  padding: 8px 12px;
-  background: transparent;
-  color: #ffffff;
-}
-
-.sidebar ul li ul li:hover {
-  color: #6366f1;
-}
-
-
-
-.sidebar a{
-color: white;
-text-decoration: none;
-}
-
-.content-area {
-  width: 80%;
-  padding: 30px;
-}
-
-        
-      `
-}</style>
-
+          .content-area {
+            margin-left: 0;
+          }
+        }
+      `}</style>
     </>
   );
 }
-

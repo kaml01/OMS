@@ -15,7 +15,7 @@ class PartyAdmin(admin.ModelAdmin):
     list_display = ['card_code', 'card_name', 'state', 'main_group', 'card_type', 'synced_at']
     list_filter = ['card_type', 'state', 'main_group']
     search_fields = ['card_code', 'card_name']
-    readonly_fields = ['synced_at', 'created_at']
+    readonly_fields = ['synced_at']
 
 
 @admin.register(PartyAddress)
@@ -23,7 +23,7 @@ class PartyAddressAdmin(admin.ModelAdmin):
     list_display = ['card_code', 'address_id', 'address_type', 'gst_number', 'synced_at']
     list_filter = ['address_type']
     search_fields = ['card_code', 'gst_number', 'full_address']
-    readonly_fields = ['synced_at', 'created_at']
+    readonly_fields = ['synced_at']
 
 
 @admin.register(SyncLog)

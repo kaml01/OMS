@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('country', models.CharField(blank=True, max_length=100, null=True)),
                 ('card_type', models.CharField(choices=[('C', 'Customer'), ('S', 'Supplier'), ('L', 'Lead')], default='C', max_length=1)),
                 ('synced_at', models.DateTimeField(auto_now=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                # ('created_at', models.DateTimeField(auto_now_add=True)),
             ],
             options={
                 'verbose_name_plural': 'Parties',
@@ -95,14 +95,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PartyAddress',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                # ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('card_code', models.CharField(db_index=True, max_length=50)),
                 ('address_id', models.CharField(blank=True, max_length=100, null=True)),
                 ('address_type', models.CharField(blank=True, choices=[('B', 'Bill To'), ('S', 'Ship To')], max_length=1, null=True)),
                 ('gst_number', models.CharField(blank=True, max_length=20, null=True)),
                 ('full_address', models.TextField(blank=True, null=True)),
                 ('synced_at', models.DateTimeField(auto_now=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                # ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('party', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='addresses', to='sap_sync.party')),
             ],
             options={

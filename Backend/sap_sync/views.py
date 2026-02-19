@@ -18,7 +18,7 @@ from .services import SyncService
 
 class SyncAllView(APIView):
     """Trigger manual sync of all data (Products, Parties, Addresses)"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def post(self, request):
         try:
@@ -62,7 +62,7 @@ class SyncProductsView(APIView):
 
 class SyncPartiesView(APIView):
     """Trigger manual sync of parties only"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def post(self, request):
         try:
@@ -108,7 +108,7 @@ class SyncPartyAddressesView(APIView):
 
 class ProductListView(ListAPIView):
     """List all products with optional search/filter"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = ProductSerializer
     
     def get_queryset(self):
@@ -159,11 +159,12 @@ class ProductByCodeView(RetrieveAPIView):
 
 class PartyListView(ListAPIView):
     """List all parties with optional search/filter"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = PartyListSerializer
     
+    
     def get_queryset(self):
-        queryset = Party.objects.all()
+        queryset = Party.objects.all().filter(category='OIL').order_by("card_name")
         
         # Search by card_code or card_name
         search = self.request.query_params.get('search', None)
@@ -411,4 +412,26 @@ class SyncStatusView(APIView):
                 'last_sync': SyncLogSerializer(last_sync).data if last_sync else None,
                 'active_schedules': active_schedules
             }
+        })
+
+
+# Party address view by code
+class PartyAddressByCodeView(APIView):
+
+    def get(self, request, card_code):
+
+        bill = PartyAddress.objects.filter(
+            card_code=card_code,
+            address_type="B"
+        )
+
+        ship = PartyAddress.objects.filter(
+            card_code=card_code,
+            address_type="S"
+        )
+
+        return Response({
+            "success": True,
+            "bill_to": PartyAddressSerializer(bill, many=True).data,
+            "ship_to": PartyAddressSerializer(ship, many=True).data,
         })

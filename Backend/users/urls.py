@@ -19,11 +19,15 @@ from .views import (
     BulkAssignProductsToPartyView,
     UpdateProductRateView,
     RemoveProductFromPartyView,
+
+    CurrentUserView,
 )
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('profile/', ProfileView.as_view(), name='profile'),
+
+    path('current-user/', CurrentUserView.as_view(), name='currentUser'),
 
     # Master data APIs
     path('states/', StateListView.as_view(), name='states'),

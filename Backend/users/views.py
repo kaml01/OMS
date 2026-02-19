@@ -5,13 +5,17 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from decimal import Decimal
-from .serializers import RoleSerializer
+from .serializers import RoleSerializer, CurrentUserSerializer
 from .models import User, UserPartyAssignment, PartyProductAssignment, State, Company, MainGroup,UserRole
 from sap_sync.models import Party, Product
 from django.db import models
 from django.db.models import Q
 
-
+class CurrentUserView(APIView):
+    def get(self, request):
+        serializer = CurrentUserSerializer(request.user)
+        return Response(serializer.data)
+    
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -266,7 +270,7 @@ class PartyUsersView(APIView):
 
 class PartyProductsView(APIView):
     """Get all products assigned to a party with their basic_rate"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, card_code):
         party = Party.objects.filter(card_code=card_code).first()

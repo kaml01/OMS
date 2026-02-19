@@ -3,6 +3,19 @@ from django.contrib.auth import authenticate
 from .models import User, Company, MainGroup, State,UserRole
 
 
+class CurrentUserSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="role.name")
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "role"]
+
+    
+    def get_role(self, obj):
+        if obj.role:
+            return obj.role.name   
+        return None
+
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company

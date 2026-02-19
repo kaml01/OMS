@@ -51,7 +51,8 @@ export default function Login() {
         </div>
 
         {/* Welcome Text */}
-        <h1 className="login-heading">Welcome Back</h1>
+        <h1 className="oms">OMS</h1>
+        <h6 className="login-heading">Welcome Back</h6>
         <p className="login-text">
           Please enter your credentials to continue
         </p>

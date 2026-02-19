@@ -7,7 +7,7 @@ from .views import (
     # Parties
     PartyListView, PartyDetailView, PartyByCodeView,
     # Party Addresses
-    PartyAddressListView,
+    PartyAddressListView, PartyAddressByCodeView,
     # Sync Logs
     SyncLogListView,
     # Schedule Management
@@ -35,6 +35,14 @@ urlpatterns = [
     
     # ============ Party Addresses ============
     path('addresses/', PartyAddressListView.as_view(), name='address-list'),
+  path(
+    "party-address/<str:card_code>/",
+    PartyAddressByCodeView.as_view(),
+    name="party-address"
+),
+
+
+
     
     # ============ Sync Logs ============
     path('logs/', SyncLogListView.as_view(), name='sync-logs'),

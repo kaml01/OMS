@@ -52,7 +52,6 @@ class Party(models.Model):
     
     # Sync metadata
     synced_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         db_table = 'sap_parties'
@@ -71,7 +70,7 @@ class PartyAddress(models.Model):
         ('S', 'Ship To'),
     ]
     
-    party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='addresses', null=True, blank=True)
+    # party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='addresses', null=True, blank=True)
     card_code = models.CharField(max_length=50, db_index=True)
     address_id = models.CharField(max_length=100, blank=True, null=True)
     address_type = models.CharField(max_length=1, choices=ADDRESS_TYPE_CHOICES, blank=True, null=True)
@@ -80,13 +79,14 @@ class PartyAddress(models.Model):
     
     # Sync metadata
     synced_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    # created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         db_table = 'sap_party_addresses'
         unique_together = ['card_code', 'address_id']
         ordering = ['card_code', 'address_id']
         verbose_name_plural = 'Party Addresses'
+        managed = False
     
     def __str__(self):
         return f"{self.card_code} - {self.address_id}"

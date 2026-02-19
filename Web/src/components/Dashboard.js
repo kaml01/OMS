@@ -19,7 +19,7 @@ export default function Dashboard() {
   width: 100%;
   padding: 30px;
 
-   background: #f9fbff;
+   background: #f1f5f9;
 
   display: flex;
   gap: 25px;
@@ -31,7 +31,7 @@ export default function Dashboard() {
   width: 280px;
   height: 120px;
 
-  background: white;
+  // background: white;
   border-radius: 16px;
 
   display: flex;
@@ -40,7 +40,9 @@ export default function Dashboard() {
 
   font-size: 18px;
   font-weight: 600;
-  color: #111827;
+  color: #475569;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
 
   box-shadow: 0px 8px 18px rgba(0, 0, 0, 0.06);
 
@@ -50,25 +52,25 @@ export default function Dashboard() {
 /* Card Hover */
 .main-area1:hover {
   transform: translateY(-6px);
-  border: 1px solid #3b82f6;
+  border: 1px solid #1e293b;
 }
 
 /* Different Card Accent Colors */
 .main-area1:nth-child(1) {
-  border-left: 6px solid #3b82f6;
+  border-left: 6px solid #1e293b;
 }
 
 .main-area1:nth-child(2) {
-  border-left: 6px solid #22c55e;
+  border-left: 6px solid #1e293b;
 }
 
 .main-area1:nth-child(3) {
-  border-left: 6px solid #f97316;
+  border-left: 6px solid #1e293b;
 }
 
 .dashboard-body {
   display: flex;
-   background: #f5f7ff;
+   background: #f1f5f9;
     min-height: 95vh;
 }
         `
