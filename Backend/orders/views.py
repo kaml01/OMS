@@ -304,7 +304,7 @@ class CreateOrderView(APIView):
             company=data.get('company', ''),
             po_number=data.get('po_number', ''),
             total_amount=total_amount,
-            status=get_status('Created'),
+            status=get_status('Order Created'),
             created_by=user.id if user else 2,
         )
         
@@ -338,7 +338,7 @@ class CreateOrderView(APIView):
                 flagged_items.append(f"{item.get('item_name')}: Basic ₹{bp} > Market ₹{mp}")
         
         # Log: Order created
-        log_order_action(order, 'Created', user=user)
+        log_order_action(order, 'Order Created', user=user)
         
         # Route based on price check
         if needs_approval:
