@@ -305,6 +305,7 @@ class CreateOrderView(APIView):
             po_number=data.get('po_number', ''),
             total_amount=total_amount,
             status=get_status('Order Created'),
+             delivery_date=data.get('delivery_date'),
             created_by=user.id if user else 2,
         )
         
@@ -329,6 +330,7 @@ class CreateOrderView(APIView):
                 market_price=item.get('market_price', 0),
                 total=item.get('total', 0),
                 tax_rate=item.get('tax_rate', 0),
+               
             )
 
             bp = float(item.get('basic_price', 0))
@@ -472,6 +474,10 @@ class OrderListView(APIView):
                 'items_count': items_count,
                 'created_by': order.created_by,
                 'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+                'delivery_date': order.delivery_date,
+                'bill_to_address': order.bill_to_address,
+                'ship_to_address': order.ship_to_address,
+                'po_number': order.po_number,
             })
         
         return Response(data)   
